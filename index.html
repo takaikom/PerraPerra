@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ペラペラ">
+<title>ペラペラ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%235B6CFF'/%3E%3Ctext x='50' y='66' font-size='46' text-anchor='middle' fill='white' font-weight='bold'%3E%E3%83%9A%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#F5F6FA; --card:#FFFFFF; --text:#1B2033; --sub:#6B7185; --line:#E3E6EF;
+  --listen:#5B6CFF; --listen-soft:#EDEFFF;
+  --speak:#FF7A59; --speak-soft:#FFF0EB;
+  --ok:#2EB876; --shadow:0 4px 20px rgba(27,32,51,.08);
+  --r:18px;
+}
+[data-theme="dark"]{
+  --bg:#12141D; --card:#1C1F2C; --text:#EDEFF7; --sub:#8A90A6; --line:#2B2F40;
+  --listen:#7C8AFF; --listen-soft:#232A4D;
+  --speak:#FF8E70; --speak-soft:#3D2A24;
+  --ok:#3ECF8E; --shadow:0 4px 20px rgba(0,0,0,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%}
+body{
+  font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100%; padding-bottom:env(safe-area-inset-bottom);
+  transition:background .3s;
+}
+button{font-family:inherit;border:none;cursor:pointer;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:16px}
+
+/* ===== layout ===== */
+.screen{display:none;max-width:560px;margin:0 auto;padding:16px 16px 90px}
+.screen.active{display:block}
+header{display:flex;align-items:center;justify-content:space-between;padding:8px 2px 16px}
+header h1{font-size:20px;font-weight:900;letter-spacing:.05em}
+header h1 span{color:var(--listen)}
+.icon-btn{font-size:20px;padding:8px;border-radius:12px}
+.icon-btn:active{background:var(--line)}
+
+nav{
+  position:fixed;bottom:0;left:0;right:0;background:var(--card);
+  border-top:1px solid var(--line);display:flex;z-index:50;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav button{flex:1;padding:10px 0 8px;font-size:11px;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button .ni{font-size:20px}
+nav button.on{color:var(--listen);font-weight:700}
+
+/* ===== main / session ===== */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:24px 20px;margin-bottom:16px}
+#startCard{text-align:center;padding:48px 20px}
+#startCard .streak{font-size:14px;color:var(--sub);margin-bottom:24px}
+#startCard .streak b{color:var(--speak);font-size:22px;margin:0 4px}
+.big-btn{
+  display:block;width:100%;padding:20px;border-radius:16px;
+  background:var(--listen);color:#fff;font-size:20px;font-weight:900;letter-spacing:.1em;
+  box-shadow:0 6px 16px rgba(91,108,255,.35);
+}
+.big-btn:active{transform:scale(.98)}
+.big-btn.speak{background:var(--speak);box-shadow:0 6px 16px rgba(255,122,89,.35)}
+.big-btn.ghost{background:var(--card);color:var(--sub);border:1.5px solid var(--line);box-shadow:none;font-weight:700}
+
+/* session phase */
+#session{text-align:center}
+.phase-badge{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:99px;
+  font-weight:900;font-size:14px;letter-spacing:.15em;margin-bottom:20px;
+}
+.phase-badge.listen{background:var(--listen-soft);color:var(--listen)}
+.phase-badge.speak{background:var(--speak-soft);color:var(--speak)}
+
+.orb-wrap{height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.orb{
+  width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:38px;position:relative;background:var(--listen-soft);transition:background .3s;
+}
+.orb.speak-mode{background:var(--speak-soft)}
+.orb::before,.orb::after{
+  content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--listen);
+  opacity:0;pointer-events:none;
+}
+.orb.speak-mode::before,.orb.speak-mode::after{border-color:var(--speak)}
+.orb.pulsing::before{animation:ripple 1.6s ease-out infinite}
+.orb.pulsing::after{animation:ripple 1.6s ease-out .8s infinite}
+@keyframes ripple{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.9);opacity:0}}
+@media (prefers-reduced-motion:reduce){.orb::before,.orb::after{animation:none!important}}
+.orb .count{font-size:40px;font-weight:900;color:var(--speak)}
+
+.phrase-en{font-size:26px;font-weight:700;line-height:1.5;margin:8px 0 12px;min-height:78px}
+.phrase-en .w{transition:color .1s}
+.phrase-en .w.hl{color:var(--listen)}
+.phrase-ja{font-size:14px;color:var(--sub);margin-bottom:20px}
+.rep-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+.rep-dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.rep-dots i.done{background:var(--listen)}
+.rep-dots i.done.sp{background:var(--speak)}
+.recog{
+  min-height:24px;font-size:15px;color:var(--sub);font-style:italic;margin-bottom:8px;
+  overflow-wrap:break-word;
+}
+.hint{font-size:12px;color:var(--sub)}
+
+/* complete */
+.done-mark{font-size:56px;margin:8px 0 4px}
+.rate-row{display:flex;gap:10px;margin:20px 0}
+.rate-row button{
+  flex:1;padding:14px 4px;border-radius:14px;border:1.5px solid var(--line);
+  font-weight:700;font-size:14px;background:var(--card)
+}
+.rate-row button.sel{border-color:var(--listen);background:var(--listen-soft);color:var(--listen)}
+.two-btn{display:flex;flex-direction:column;gap:10px}
+
+/* ===== stats ===== */
+.stat-hero{display:flex;gap:12px;margin-bottom:16px}
+.stat-hero .card{flex:1;text-align:center;margin:0;padding:18px 8px}
+.stat-hero .num{font-size:30px;font-weight:900;color:var(--listen)}
+.stat-hero .lbl{font-size:12px;color:var(--sub)}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-head b{font-size:16px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-grid .dow{font-size:11px;color:var(--sub);padding:4px 0}
+.cal-grid .day{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:13px;border-radius:10px;color:var(--sub)
+}
+.cal-grid .day.did{background:var(--listen);color:#fff;font-weight:700}
+.cal-grid .day.today{outline:2px solid var(--speak)}
+
+/* ===== phrases editor ===== */
+.cat-block summary{
+  padding:14px 4px;font-weight:700;font-size:15px;cursor:pointer;list-style:none;
+  display:flex;justify-content:space-between;border-bottom:1px solid var(--line)
+}
+.cat-block summary::-webkit-details-marker{display:none}
+.cat-block summary .cnt{color:var(--sub);font-weight:400;font-size:13px}
+.p-item{padding:12px 4px;border-bottom:1px solid var(--line)}
+.p-item .en{font-size:15px;font-weight:500}
+.p-item .ja{font-size:12px;color:var(--sub);margin-top:2px}
+.p-item .meta{font-size:11px;color:var(--sub);margin-top:4px;display:flex;gap:10px}
+.p-item.archived{opacity:.4}
+.p-actions{display:flex;gap:14px;margin-top:6px}
+.p-actions button{font-size:12px;color:var(--listen);font-weight:700}
+.p-actions button.warn{color:var(--speak)}
+.fab{
+  position:fixed;right:20px;bottom:calc(70px + env(safe-area-inset-bottom));
+  width:56px;height:56px;border-radius:50%;background:var(--listen);color:#fff;
+  font-size:28px;box-shadow:var(--shadow);z-index:40
+}
+
+/* ===== settings ===== */
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:16px 4px;border-bottom:1px solid var(--line);gap:12px}
+.set-row .t{font-size:15px;font-weight:500}
+.set-row .d{font-size:12px;color:var(--sub);margin-top:2px}
+.toggle{position:relative;width:50px;height:29px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle i{
+  position:absolute;inset:0;background:var(--line);border-radius:99px;transition:.2s;cursor:pointer
+}
+.toggle i::after{
+  content:"";position:absolute;left:3px;top:3px;width:23px;height:23px;border-radius:50%;
+  background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)
+}
+.toggle input:checked+i{background:var(--ok)}
+.toggle input:checked+i::after{transform:translateX(21px)}
+.text-input{
+  width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--text);margin-top:8px
+}
+.small-btn{
+  padding:10px 16px;border-radius:12px;background:var(--listen);color:#fff;
+  font-weight:700;font-size:13px;flex-shrink:0
+}
+.small-btn.gray{background:var(--sub)}
+.sec-title{font-size:13px;font-weight:900;color:var(--sub);letter-spacing:.1em;margin:24px 0 4px;padding:0 4px}
+.ver{text-align:center;color:var(--sub);font-size:12px;padding:24px 0}
+
+/* modal */
+#modal{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;
+  align-items:flex-end;justify-content:center
+}
+#modal.open{display:flex}
+#modal .sheet{
+  background:var(--card);width:100%;max-width:560px;border-radius:20px 20px 0 0;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-height:85vh;overflow:auto
+}
+#modal .sheet h3{margin-bottom:12px}
+.close-x{position:sticky;top:0;float:right;font-size:22px;color:var(--sub);padding:4px 8px}
+label.f{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px;font-weight:700}
+.toast{
+  position:fixed;left:50%;bottom:90px;transform:translateX(-50%);
+  background:var(--text);color:var(--bg);padding:10px 20px;border-radius:99px;
+  font-size:13px;font-weight:700;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;
+  white-space:nowrap
+}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ===== HOME ===== -->
+<div class="screen active" id="scr-home">
+  <header>
+    <h1>ペラ<span>ペラ</span></h1>
+    <button class="icon-btn" id="themeBtn">🌓</button>
+  </header>
+
+  <div class="card" id="startCard">
+    <div class="streak">連続 <b id="homeStreak">0</b> 日</div>
+    <div style="font-size:15px;color:var(--sub);margin-bottom:28px" id="homeMsg">きょうの1フレーズ、はじめよう</div>
+    <button class="big-btn" id="startBtn">はじめる</button>
+  </div>
+
+  <div class="card" id="session" style="display:none">
+    <div class="phase-badge listen" id="phaseBadge">👂 LISTEN</div>
+    <div class="orb-wrap"><div class="orb" id="orb">👂</div></div>
+    <div class="rep-dots" id="repDots"><i></i><i></i><i></i></div>
+    <div class="phrase-en" id="phraseEn"></div>
+    <div class="phrase-ja" id="phraseJa"></div>
+    <div class="recog" id="recogText"></div>
+    <div class="hint" id="hintText"></div>
+  </div>
+
+  <div class="card" id="complete" style="display:none;text-align:center">
+    <div class="done-mark">🎉</div>
+    <div style="font-weight:900;font-size:18px">1セット完了!</div>
+    <div style="font-size:13px;color:var(--sub);margin-top:4px" id="doneCount"></div>
+    <div class="rate-row">
+      <button data-rate="again">もう一度</button>
+      <button data-rate="good" class="sel">ふつう</button>
+      <button data-rate="easy">かんたん</button>
+    </div>
+    <div class="two-btn">
+      <button class="big-btn speak" id="contBtn">つづける ▶</button>
+      <button class="big-btn ghost" id="stopBtn">きょうはここまで</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STATS ===== -->
+<div class="screen" id="scr-stats">
+  <header><h1>きろく</h1></header>
+  <div class="stat-hero">
+    <div class="card"><div class="num" id="stStreak">0</div><div class="lbl">連続日数</div></div>
+    <div class="card"><div class="num" id="stTotal">0</div><div class="lbl">累計セット</div></div>
+    <div class="card"><div class="num" id="stToday">0</div><div class="lbl">きょう</div></div>
+  </div>
+  <div class="card">
+    <div class="cal-head">
+      <button class="icon-btn" id="calPrev">◀</button>
+      <b id="calTitle"></b>
+      <button class="icon-btn" id="calNext">▶</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+</div>
+
+<!-- ===== PHRASES ===== -->
+<div class="screen" id="scr-phrases">
+  <header><h1>フレーズ</h1></header>
+  <div id="phraseList"></div>
+  <button class="fab" id="addPhraseBtn">＋</button>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div class="screen" id="scr-settings">
+  <header><h1>せってい</h1></header>
+
+  <div class="sec-title">表示・動作</div>
+  <div class="set-row">
+    <div><div class="t">ダークモード</div></div>
+    <label class="toggle"><input type="checkbox" id="setDark"><i></i></label>
+  </div>
+  <div class="set-row">
+    <div><div class="t">画面スリープ防止</div><div class="d">セット中に画面を消灯しない</div></div>
+    <label class="toggle"><input type="checkbox" id="setWake" checked><i></i></label>
+  </div>
+  <div class="set-row">
+    <div><div class="t">読み上げ速度</div></div>
+    <select id="setRate" style="background:var(--bg);color:var(--text);border:1.5px solid var(--line);border-radius:10px;padding:8px">
+      <option value="0.8">ゆっくり</option>
+      <option value="1.0" selected>ふつう</option>
+      <option value="1.2">はやい</option>
+    </select>
+  </div>
+
+  <div class="sec-title">データ同期(GAS)</div>
+  <div class="set-row" style="flex-direction:column;align-items:stretch">
+    <div><div class="t">GAS URL</div><div class="d">進捗をGoogle Sheetsにバックアップ</div></div>
+    <input class="text-input" id="setGasUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button class="small-btn" id="gasUpBtn">アップロード</button>
+      <button class="small-btn" id="gasDownBtn">ダウンロード</button>
+      <button class="small-btn gray" id="gasCodeBtn">GASコードをコピー</button>
+    </div>
+  </div>
+
+  <div class="sec-title">Tsuzukeru連携</div>
+  <div class="set-row">
+    <div><div class="t">完了を習慣として記録</div><div class="d">セット完了時にTsuzukeruへ送信</div></div>
+    <label class="toggle"><input type="checkbox" id="setTzOn"><i></i></label>
+  </div>
+  <div class="set-row" style="flex-direction:column;align-items:stretch" id="tzFields">
+    <input class="text-input" id="setTzUrl" placeholder="Tsuzukeru GAS URL">
+    <input class="text-input" id="setTzHabit" placeholder="習慣ID(例: english)">
+    <button class="small-btn gray" id="tzCodeBtn" style="margin-top:10px;align-self:flex-start">受け口GASコードをコピー</button>
+  </div>
+
+  <div class="ver">ペラペラ v1.0</div>
+</div>
+
+<nav>
+  <button data-scr="home" class="on"><span class="ni">🗣</span>ホーム</button>
+  <button data-scr="stats"><span class="ni">📅</span>きろく</button>
+  <button data-scr="phrases"><span class="ni">📚</span>フレーズ</button>
+  <button data-scr="settings"><span class="ni">⚙️</span>せってい</button>
+</nav>
+
+<div id="modal"><div class="sheet" id="modalSheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= DATA ================= */
+const CATS = ["あいさつ・雑談","会議進行","メール","電話・オンライン会議","治験オペレーション","規制当局対応","統計","文書作成","安全性","プレゼン","依頼・交渉","進捗管理","My Apps"];
+const P = [];
+let _id = 1;
+function d(c, arr){ arr.forEach(([en,ja]) => P.push({id:_id++, c, en, ja})); }
+
+d(0,[["Thank you for taking the time to meet with us today.","本日はお時間をいただきありがとうございます"],
+["It's been a while. How have you been?","お久しぶりです。お元気でしたか"],
+["I look forward to working with you on this project.","このプロジェクトでご一緒できるのを楽しみにしています"],
+["Did you have any trouble finding our office?","オフィスはすぐわかりましたか"],
+["How was your flight to Tokyo?","東京までのフライトはいかがでしたか"],
+["Let me introduce myself. I'm in charge of regulatory affairs.","自己紹介します。薬事を担当しています"],
+["I've heard a lot about your work.","お噂はかねがね伺っています"],
+["Please let me know if you need anything during your stay.","滞在中、何かあればお知らせください"],
+["It was a pleasure meeting you.","お会いできてよかったです"],
+["I hope we can talk again soon.","またすぐお話しできることを願っています"],
+["Thank you for your hospitality during our visit.","訪問中のおもてなしに感謝します"],
+["Have a safe trip back home.","お気をつけてお帰りください"]]);
+
+d(1,[["Shall we get started?","始めましょうか"],
+["Could you speak a little more slowly, please?","もう少しゆっくり話していただけますか"],
+["Sorry to interrupt, but may I ask a question?","途中ですみません、質問してもいいですか"],
+["Could you explain that in more detail?","もう少し詳しく説明していただけますか"],
+["Let me confirm my understanding.","理解を確認させてください"],
+["We are running out of time, so let's move on.","時間がないので次に進みましょう"],
+["Can we come back to this point later?","この点は後で戻ってもいいですか"],
+["Does anyone have any questions so far?","ここまでで質問はありますか"],
+["Let's summarize the action items before we close.","終わる前にアクションアイテムをまとめましょう"],
+["I'll send out the minutes by tomorrow.","明日までに議事録を送ります"],
+["Could we schedule a follow-up meeting next week?","来週フォローアップ会議を設定できますか"],
+["Thank you all for joining today.","本日はご参加ありがとうございました"]]);
+
+d(2,[["I hope this email finds you well.","お元気でお過ごしのことと思います"],
+["I'm writing to follow up on my previous email.","先日のメールの件でご連絡しています"],
+["Please find the attached file for your review.","添付ファイルをご確認ください"],
+["Could you reply by the end of this week?","今週末までにご返信いただけますか"],
+["I apologize for the late reply.","返信が遅くなり申し訳ありません"],
+["Please let me know if you have any questions.","ご質問があればお知らせください"],
+["I would appreciate your feedback on the draft.","ドラフトへのフィードバックをいただけると助かります"],
+["Just a gentle reminder about the deadline tomorrow.","明日が締切ですのでリマインドです"],
+["Thank you for your prompt response.","迅速なご返信ありがとうございます"],
+["I'm copying my colleague on this email.","同僚をCCに入れています"],
+["Please disregard my previous email.","先ほどのメールは破棄してください"],
+["I look forward to hearing from you.","ご連絡をお待ちしています"]]);
+
+d(3,[["Can you hear me clearly?","はっきり聞こえますか"],
+["Your voice is breaking up a little.","音声が少し途切れています"],
+["Could you mute your microphone, please?","マイクをミュートしていただけますか"],
+["Let me share my screen.","画面を共有します"],
+["Can everyone see my slides?","スライドは見えていますか"],
+["Sorry, I was on mute.","すみません、ミュートでした"],
+["We seem to have lost him. Let's wait a moment.","彼が落ちたようです。少し待ちましょう"],
+["Could you say that again? The connection was unstable.","もう一度言っていただけますか。接続が不安定でした"],
+["I'll drop the link in the chat.","チャットにリンクを貼ります"],
+["Let's take a five-minute break.","5分休憩しましょう"],
+["I have to leave early for another meeting.","別の会議のため早めに失礼します"],
+["I'll record this session and share it later.","このセッションを録画して後で共有します"]]);
+
+d(4,[["The first patient was enrolled last week.","先週、最初の患者が組み入れられました"],
+["Patient enrollment is behind schedule.","患者登録が予定より遅れています"],
+["We need to amend the protocol before the next visit.","次回の来院前に治験実施計画書を改訂する必要があります"],
+["The site initiation visit is scheduled for next month.","施設立ち上げ訪問は来月の予定です"],
+["Three sites have completed the monitoring visit.","3施設でモニタリング訪問が完了しました"],
+["We found several protocol deviations at this site.","この施設でいくつかのプロトコル逸脱が見つかりました"],
+["The database lock is planned for the end of March.","データベースロックは3月末の予定です"],
+["Informed consent must be obtained before any procedures.","いかなる手順の前にも同意取得が必要です"],
+["The interim analysis will be conducted by an independent committee.","中間解析は独立委員会が実施します"],
+["We are considering adding two more sites in Asia.","アジアで2施設の追加を検討しています"],
+["The last patient completed the final visit yesterday.","昨日、最後の患者が最終来院を完了しました"],
+["The clinical study report is due in June.","治験総括報告書の期限は6月です"]]);
+
+d(5,[["We received an inquiry from the PMDA yesterday.","昨日PMDAから照会を受けました"],
+["The response to the agency is due within ten business days.","当局への回答期限は10営業日以内です"],
+["We plan to request a consultation meeting with the PMDA.","PMDAとの相談を申し込む予定です"],
+["The submission package is under internal review.","申請資料は社内レビュー中です"],
+["The agency asked us to provide additional safety data.","当局から追加の安全性データを求められました"],
+["We expect approval in the first quarter of next year.","来年第1四半期の承認を見込んでいます"],
+["This study was conducted in accordance with ICH guidelines.","本試験はICHガイドラインに従って実施されました"],
+["The briefing document should be finalized by Friday.","説明資料は金曜までに確定する必要があります"],
+["We need to align our response strategy with the global team.","回答方針をグローバルチームとすり合わせる必要があります"],
+["The agency accepted our justification.","当局は当社の正当化を受け入れました"],
+["A post-marketing study may be required as a condition of approval.","承認条件として製造販売後調査が求められる可能性があります"],
+["Let's discuss how to address the agency's concerns.","当局の懸念にどう対応するか議論しましょう"]]);
+
+d(6,[["The primary endpoint was met with statistical significance.","主要評価項目は統計的有意に達成されました"],
+["The p-value was less than 0.05.","p値は0.05未満でした"],
+["The confidence interval excludes zero.","信頼区間はゼロを含みません"],
+["We used a mixed model for repeated measures.","反復測定混合モデルを使用しました"],
+["Missing data were handled by multiple imputation.","欠測データは多重補完で処理しました"],
+["The sample size was calculated based on a power of 90 percent.","症例数は検出力90%に基づいて算出しました"],
+["The analysis population is the full analysis set.","解析対象集団はFASです"],
+["The estimand framework follows ICH E9 R1.","estimandの枠組みはICH E9(R1)に従います"],
+["Subgroup analyses were pre-specified in the protocol.","部分集団解析は計画書で事前規定されました"],
+["The results were consistent across sensitivity analyses.","結果は感度解析間で一貫していました"],
+["Randomization was stratified by age and region.","無作為化は年齢と地域で層別しました"],
+["There was no significant difference between the two groups.","両群間に有意差はありませんでした"]]);
+
+d(7,[["The draft of Module 2.5 is ready for review.","Module 2.5のドラフトがレビュー可能になりました"],
+["Please check the consistency between the tables and the text.","表と本文の整合性を確認してください"],
+["This section needs to be updated with the latest data.","このセクションは最新データで更新が必要です"],
+["The document will go through quality control next week.","この文書は来週QCにかかります"],
+["We should keep the wording consistent with the protocol.","文言は計画書と一貫させるべきです"],
+["The reference list must follow the company style guide.","参考文献リストは社内スタイルガイドに従う必要があります"],
+["I'll incorporate your comments into the next version.","いただいたコメントを次版に反映します"],
+["The summary should not exceed ten pages.","要約は10ページ以内にすべきです"],
+["Let's clarify the definition of this term in the glossary.","この用語の定義を用語集で明確にしましょう"],
+["The final version requires sign-off from three departments.","最終版には3部門の承認が必要です"],
+["Please track your changes in the document.","変更履歴を残して修正してください"],
+["The English translation needs a native check.","英訳はネイティブチェックが必要です"]]);
+
+d(8,[["A serious adverse event was reported at site five.","施設5で重篤な有害事象が報告されました"],
+["The event was assessed as unrelated to the study drug.","この事象は治験薬と関連なしと評価されました"],
+["We must report this case to the authorities within fifteen days.","この症例は15日以内に当局へ報告が必要です"],
+["The most common adverse events were headache and nausea.","最も多い有害事象は頭痛と悪心でした"],
+["No new safety signals were identified.","新たな安全性シグナルは認められませんでした"],
+["The safety profile was consistent with previous studies.","安全性プロファイルは過去の試験と一貫していました"],
+["The patient recovered without any treatment.","患者は無処置で回復しました"],
+["The investigator considered the event to be mild.","治験責任医師はこの事象を軽度と判断しました"],
+["We updated the investigator's brochure with new safety information.","新しい安全性情報でIBを改訂しました"],
+["The risk-benefit balance remains positive.","リスク・ベネフィットバランスは引き続き良好です"],
+["Please follow up on the outcome of this case.","この症例の転帰をフォローしてください"],
+["The data safety monitoring board recommended continuing the study.","データ安全性モニタリング委員会は試験継続を推奨しました"]]);
+
+d(9,[["Today, I'd like to talk about our development strategy.","本日は開発戦略についてお話しします"],
+["Please take a look at this slide.","このスライドをご覧ください"],
+["As you can see from this graph, sales are increasing.","このグラフの通り、売上は増加しています"],
+["Let me move on to the next topic.","次のトピックに移ります"],
+["This is the key message of my presentation.","これが本日のキーメッセージです"],
+["I'll explain the details later in the appendix.","詳細は後ほど付録で説明します"],
+["To summarize, we have three main findings.","まとめると、主要な知見は3つです"],
+["That's all from me. Thank you for listening.","以上です。ご清聴ありがとうございました"],
+["I'm happy to take any questions now.","ご質問をお受けします"],
+["That's a good question. Let me think for a moment.","良い質問ですね。少し考えさせてください"],
+["I'm afraid I don't have the data with me today.","あいにく本日そのデータは手元にありません"],
+["I'll get back to you on that point after the meeting.","その点は会議後に回答します"]]);
+
+d(10,[["Could you do me a favor?","お願いがあるのですが"],
+["Would it be possible to extend the deadline?","締切を延ばすことは可能でしょうか"],
+["I understand your concern, but we have a budget limitation.","懸念は理解しますが、予算に制約があります"],
+["Let me check with my team and get back to you.","チームに確認して折り返します"],
+["We can accept this condition if you shorten the timeline.","スケジュールを短縮いただければこの条件を受け入れられます"],
+["Could you give us a discount for a long-term contract?","長期契約で割引をいただけますか"],
+["I'm afraid we cannot agree to that proposal.","恐れ入りますがその提案には同意できません"],
+["Let's find a solution that works for both of us.","双方にとって良い解決策を探しましょう"],
+["Can I count on your support for this task?","このタスク、頼りにしていいですか"],
+["We appreciate your flexibility on this matter.","この件での柔軟なご対応に感謝します"],
+["Please prioritize this task over the others.","このタスクを他より優先してください"],
+["I owe you one.","ひとつ借りができましたね"]]);
+
+d(11,[["The project is on track.","プロジェクトは順調です"],
+["We are two weeks behind schedule.","予定より2週間遅れています"],
+["What is the current status of the deliverable?","成果物の現在の状況はどうですか"],
+["The deadline has been moved up to next Friday.","締切が来週金曜に前倒しになりました"],
+["We need more resources to meet the deadline.","締切を守るにはリソースの追加が必要です"],
+["Let's identify the bottleneck in this process.","このプロセスのボトルネックを特定しましょう"],
+["I'll update the schedule and share it with everyone.","スケジュールを更新して全員に共有します"],
+["This task depends on the outcome of the review.","このタスクはレビュー結果に依存します"],
+["Who is responsible for this action item?","このアクションアイテムの担当は誰ですか"],
+["Let's set a realistic target date.","現実的な目標日を設定しましょう"],
+["The risk should be escalated to management.","このリスクは経営層にエスカレーションすべきです"],
+["We completed the milestone ahead of schedule.","マイルストーンを前倒しで完了しました"]]);
+
+d(12,[["This app tracks daily habits and syncs data via Google Sheets.","このアプリは毎日の習慣を記録し、Googleスプレッドシートで同期します"],
+["I built a single-file web app that works offline on iPhone.","iPhoneでオフライン動作する単一ファイルのWebアプリを作りました"],
+["This tool replaces our Excel-based Gantt chart at work.","このツールは職場のExcelガントチャートを置き換えるものです"],
+["The app saves data locally, so no account is required.","データはローカル保存なのでアカウント不要です"],
+["My family uses this app to log height and weight over time.","家族がこのアプリで身長と体重を記録しています"],
+["This flashcard app supports multiple users on one device.","この単語帳アプリは1台で複数ユーザーに対応します"],
+["I added a dark mode toggle to all of my apps.","すべての自作アプリにダークモード切替を付けました"],
+["The timer keeps running even when the screen is locked.","画面ロック中もタイマーは動き続けます"],
+["You can export the data as an Excel or CSV file.","データはExcelやCSVで書き出せます"],
+["I deploy my apps to GitHub Pages, so they are free to host.","アプリはGitHub Pagesに置いているのでホスティングは無料です"]]);
+
+/* ================= STATE ================= */
+const LS_KEY = "perapera_v1";
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+let S = {
+  srs:{},            // id -> {reps, iv, ease, due, last}
+  custom:[],         // user-added phrases {id,c,en,ja}
+  archived:[],       // archived ids
+  edits:{},          // id -> {en,ja} overrides
+  dates:{},          // "YYYY-MM-DD" -> set count
+  newDate:"", newCnt:0,
+  cfg:{ dark:matchMedia("(prefers-color-scheme: dark)").matches, wake:true, rate:1.0,
+        gasUrl:"", tzOn:false, tzUrl:"", tzHabit:"" }
+};
+try{ const raw = localStorage.getItem(LS_KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
+const save = () => localStorage.setItem(LS_KEY, JSON.stringify(S));
+
+function allPhrases(){
+  return P.concat(S.custom)
+    .filter(p => !S.archived.includes(p.id))
+    .map(p => S.edits[p.id] ? Object.assign({}, p, S.edits[p.id]) : p);
+}
+function findPhrase(id){ return allPhrases().find(p => p.id === id); }
+
+/* ================= UTIL ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+let toastT;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200); }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+/* ================= THEME ================= */
+function applyTheme(){ document.documentElement.dataset.theme = S.cfg.dark ? "dark" : "light"; $("#setDark").checked = S.cfg.dark; }
+$("#themeBtn").onclick = () => { S.cfg.dark = !S.cfg.dark; save(); applyTheme(); };
+$("#setDark").onchange = e => { S.cfg.dark = e.target.checked; save(); applyTheme(); };
+
+/* ================= NAV ================= */
+$$("nav button").forEach(b => b.onclick = () => {
+  $$("nav button").forEach(x => x.classList.toggle("on", x === b));
+  $$(".screen").forEach(s => s.classList.remove("active"));
+  $("#scr-" + b.dataset.scr).classList.add("active");
+  if(b.dataset.scr === "stats") renderStats();
+  if(b.dataset.scr === "phrases") renderPhrases();
+  if(b.dataset.scr === "home") renderHome();
+});
+
+/* ================= SRS ================= */
+function dueList(){
+  const t = today();
+  return allPhrases().filter(p => S.srs[p.id] && S.srs[p.id].due <= t)
+    .sort((a,b) => S.srs[a.id].due < S.srs[b.id].due ? -1 : 1);
+}
+function pickPhrase(){
+  const t = today();
+  if(S.newDate !== t){ S.newDate = t; S.newCnt = 0; }
+  const isSun = new Date().getDay() === 0;
+  const doneToday = S.dates[t] || 0;
+  // 日曜の初回はMy Apps優先
+  if(isSun && doneToday === 0){
+    const my = allPhrases().filter(p => p.c === 12);
+    const myDue = my.filter(p => S.srs[p.id] && S.srs[p.id].due <= t);
+    if(myDue.length) return myDue[0];
+    const myNew = my.filter(p => !S.srs[p.id]);
+    if(myNew.length) return myNew[0];
+  }
+  const due = dueList();
+  if(due.length) return due[0];
+  if(S.newCnt < 1){
+    const fresh = allPhrases().find(p => !S.srs[p.id] && p.c !== 12);
+    if(fresh){ return fresh; }
+  }
+  // 先取り復習(最も期日が近いもの)
+  const seen = allPhrases().filter(p => S.srs[p.id])
+    .sort((a,b) => S.srs[a.id].due < S.srs[b.id].due ? -1 : 1);
+  if(seen.length) return seen[0];
+  return allPhrases()[0];
+}
+function rate(id, r){
+  const t = today();
+  let st = S.srs[id] || { reps:0, iv:0, ease:2.5, due:t, last:"" };
+  if(!S.srs[id] && S.newDate === t) S.newCnt++;
+  if(r === "again"){ st.reps = 0; st.iv = 0; st.due = t; }
+  else {
+    st.reps++;
+    if(r === "easy") st.ease = Math.min(3.2, st.ease + 0.15);
+    const mult = r === "easy" ? st.ease * 1.3 : st.ease;
+    st.iv = st.reps === 1 ? 1 : st.reps === 2 ? 3 : Math.round(st.iv * mult) || 1;
+    const d = new Date(); d.setDate(d.getDate() + st.iv);
+    st.due = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+  st.last = t;
+  S.srs[id] = st;
+  save();
+}
+
+/* ================= TTS / RECOGNITION ================= */
+const synth = window.speechSynthesis;
+let voice = null;
+function pickVoice(){
+  const vs = synth.getVoices().filter(v => v.lang.startsWith("en"));
+  voice = vs.find(v => /Samantha|Google US English/i.test(v.name)) || vs.find(v => v.lang === "en-US") || vs[0] || null;
+}
+pickVoice();
+if(synth.onvoiceschanged !== undefined) synth.onvoiceschanged = pickVoice;
+
+function speakOnce(text, rateMul, onWord){
+  return new Promise(res => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US"; if(voice) u.voice = voice;
+    u.rate = S.cfg.rate * rateMul;
+    u.onboundary = e => { if(e.name === "word" || e.charIndex !== undefined) onWord && onWord(e.charIndex); };
+    u.onend = res; u.onerror = res;
+    synth.speak(u);
+  });
+}
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function recognizeOnce(ms){
+  return new Promise(res => {
+    if(!SR){ res(null); return; }
+    let done = false, out = "";
+    const finish = v => { if(!done){ done = true; res(v); } };
+    try{
+      const r = new SR();
+      r.lang = "en-US"; r.interimResults = true; r.maxAlternatives = 1;
+      r.onresult = e => { out = [...e.results].map(x => x[0].transcript).join(" "); $("#recogText").textContent = "🎙 " + out; };
+      r.onerror = () => finish(out || null);
+      r.onend = () => finish(out || null);
+      r.start();
+      setTimeout(() => { try{ r.stop(); }catch(e){} }, ms);
+    }catch(e){ finish(null); }
+  });
+}
+
+/* ================= WAKE LOCK ================= */
+let wl = null;
+async function wakeOn(){ if(!S.cfg.wake || !navigator.wakeLock) return; try{ wl = await navigator.wakeLock.request("screen"); }catch(e){} }
+function wakeOff(){ if(wl){ wl.release().catch(()=>{}); wl = null; } }
+
+/* ================= SESSION ================= */
+let session = { token:0, phrase:null, rating:"good" };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function renderWords(en){
+  $("#phraseEn").innerHTML = en.split(" ").map((w,i) => `<span class="w" data-i="${i}">${esc(w)}</span>`).join(" ");
+}
+function highlightAt(charIdx, en){
+  let acc = 0; const words = en.split(" ");
+  for(let i = 0; i < words.length; i++){
+    if(charIdx < acc + words[i].length + 1){
+      $$(".phrase-en .w").forEach((el,j) => el.classList.toggle("hl", j <= i));
+      return;
+    }
+    acc += words[i].length + 1;
+  }
+}
+function setDots(n, sp){
+  $("#repDots").innerHTML = [0,1,2].map(i => `<i class="${i < n ? "done" + (sp ? " sp" : "") : ""}"></i>`).join("");
+}
+
+async function runSet(){
+  const tk = ++session.token;
+  const p = pickPhrase();
+  session.phrase = p; session.rating = "good";
+  $("#startCard").style.display = "none";
+  $("#complete").style.display = "none";
+  $("#session").style.display = "block";
+  $("#phraseJa").textContent = p.ja;
+  $("#recogText").textContent = "";
+  renderWords(p.en);
+  await wakeOn();
+
+  // ---- LISTEN ×3 ----
+  $("#phaseBadge").className = "phase-badge listen"; $("#phaseBadge").textContent = "👂 LISTEN";
+  const orb = $("#orb"); orb.className = "orb pulsing"; orb.textContent = "👂";
+  $("#hintText").textContent = "3回きくだけ";
+  const rates = [0.9, 1.0, 1.0];
+  for(let i = 0; i < 3; i++){
+    if(tk !== session.token) return;
+    setDots(i, false);
+    $$(".phrase-en .w").forEach(el => el.classList.remove("hl"));
+    await speakOnce(p.en, rates[i], ci => highlightAt(ci, p.en));
+    if(tk !== session.token) return;
+    setDots(i + 1, false);
+    await sleep(600);
+  }
+  $$(".phrase-en .w").forEach(el => el.classList.add("hl"));
+
+  // ---- SPEAK ×3 ----
+  $("#phaseBadge").className = "phase-badge speak"; $("#phaseBadge").textContent = "🗣 SPEAK";
+  orb.className = "orb speak-mode";
+  $("#hintText").textContent = SR ? "声に出して読もう(認識結果は参考表示)" : "声に出して読もう";
+  for(let i = 0; i < 3; i++){
+    if(tk !== session.token) return;
+    setDots(i, true);
+    // countdown
+    orb.classList.remove("pulsing");
+    for(let c = 3; c >= 1; c--){
+      orb.innerHTML = `<span class="count">${c}</span>`;
+      await sleep(800);
+      if(tk !== session.token) return;
+    }
+    orb.textContent = "🗣"; orb.classList.add("pulsing");
+    const dur = Math.max(3500, p.en.split(" ").length * 450);
+    if(SR){ await recognizeOnce(dur + 1500); } else { await sleep(dur); }
+    if(tk !== session.token) return;
+    setDots(i + 1, true);
+    await sleep(400);
+  }
+
+  // ---- COMPLETE ----
+  completeSet(p);
+}
+
+function completeSet(p){
+  const t = today();
+  S.dates[t] = (S.dates[t] || 0) + 1;
+  save();
+  wakeOff();
+  $("#session").style.display = "none";
+  $("#complete").style.display = "block";
+  $("#doneCount").textContent = `きょう ${S.dates[t]} セット / 連続 ${calcStreak()} 日`;
+  $$(".rate-row button").forEach(b => b.classList.toggle("sel", b.dataset.rate === "good"));
+  session.rating = "good";
+  sendTsuzukeru();
+}
+$$(".rate-row button").forEach(b => b.onclick = () => {
+  session.rating = b.dataset.rate;
+  $$(".rate-row button").forEach(x => x.classList.toggle("sel", x === b));
+});
+function commitRating(){ if(session.phrase){ rate(session.phrase.id, session.rating); session.phrase = null; } }
+$("#contBtn").onclick = () => { commitRating(); runSet(); };
+$("#stopBtn").onclick = () => { commitRating(); $("#complete").style.display = "none"; $("#startCard").style.display = "block"; renderHome(); };
+$("#startBtn").onclick = () => {
+  // iOS audio unlock: 無音発話でsynthを解放
+  try{ const u = new SpeechSynthesisUtterance(" "); u.volume = 0; synth.speak(u); }catch(e){}
+  runSet();
+};
+
+/* ================= STREAK / STATS ================= */
+function calcStreak(){
+  let n = 0; const d = new Date();
+  if(!S.dates[today()]) d.setDate(d.getDate() - 1);
+  for(;;){
+    const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    if(S.dates[k]){ n++; d.setDate(d.getDate() - 1); } else break;
+  }
+  return n;
+}
+function renderHome(){
+  const st = calcStreak();
+  $("#homeStreak").textContent = st;
+  const done = S.dates[today()] || 0;
+  $("#homeMsg").textContent = done ? `きょうは ${done} セット完了。おかわりもOK` : "きょうの1フレーズ、はじめよう";
+}
+let calCur = new Date();
+function renderStats(){
+  $("#stStreak").textContent = calcStreak();
+  $("#stTotal").textContent = Object.values(S.dates).reduce((a,b) => a + b, 0);
+  $("#stToday").textContent = S.dates[today()] || 0;
+  const y = calCur.getFullYear(), m = calCur.getMonth();
+  $("#calTitle").textContent = `${y}年${m+1}月`;
+  const first = new Date(y, m, 1).getDay();
+  const days = new Date(y, m + 1, 0).getDate();
+  let html = ["日","月","火","水","木","金","土"].map(d => `<div class="dow">${d}</div>`).join("");
+  for(let i = 0; i < first; i++) html += "<div></div>";
+  for(let d = 1; d <= days; d++){
+    const k = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const cls = (S.dates[k] ? "did " : "") + (k === today() ? "today" : "");
+    html += `<div class="day ${cls}">${d}</div>`;
+  }
+  $("#calGrid").innerHTML = html;
+}
+$("#calPrev").onclick = () => { calCur.setMonth(calCur.getMonth() - 1); renderStats(); };
+$("#calNext").onclick = () => { calCur.setMonth(calCur.getMonth() + 1); renderStats(); };
+
+/* ================= PHRASES EDITOR ================= */
+function renderPhrases(){
+  const list = $("#phraseList");
+  const all = P.concat(S.custom).map(p => S.edits[p.id] ? Object.assign({}, p, S.edits[p.id]) : p);
+  list.innerHTML = CATS.map((cat, ci) => {
+    const items = all.filter(p => p.c === ci);
+    if(!items.length) return "";
+    const rows = items.map(p => {
+      const arch = S.archived.includes(p.id);
+      const st = S.srs[p.id];
+      return `<div class="p-item ${arch ? "archived" : ""}">
+        <div class="en">${esc(p.en)}</div><div class="ja">${esc(p.ja)}</div>
+        <div class="meta">${st ? `復習 ${st.reps}回 / 次回 ${st.due}` : "未学習"}</div>
+        <div class="p-actions">
+          <button onclick="editPhrase(${p.id})">編集</button>
+          <button class="warn" onclick="toggleArchive(${p.id})">${arch ? "もどす" : "アーカイブ"}</button>
+        </div></div>`;
+    }).join("");
+    return `<details class="cat-block"><summary>${cat}<span class="cnt">${items.length}件</span></summary>${rows}</details>`;
+  }).join("");
+}
+window.toggleArchive = id => {
+  const i = S.archived.indexOf(id);
+  if(i >= 0) S.archived.splice(i, 1); else S.archived.push(id);
+  save(); renderPhrases();
+};
+window.editPhrase = id => {
+  const p = P.concat(S.custom).find(x => x.id === id);
+  const cur = S.edits[id] ? Object.assign({}, p, S.edits[id]) : p;
+  openModal(`<h3>フレーズ編集</h3>
+    <label class="f">英文</label><textarea class="text-input" id="mEn" rows="3">${esc(cur.en)}</textarea>
+    <label class="f">和訳</label><input class="text-input" id="mJa" value="${esc(cur.ja)}">
+    <button class="big-btn" style="margin-top:16px" onclick="saveEdit(${id})">保存</button>`);
+};
+window.saveEdit = id => {
+  const en = $("#mEn").value.trim(), ja = $("#mJa").value.trim();
+  if(!en) return;
+  if(S.custom.find(x => x.id === id)){ const c = S.custom.find(x => x.id === id); c.en = en; c.ja = ja; }
+  else S.edits[id] = { en, ja };
+  save(); closeModal(); renderPhrases(); toast("保存しました");
+};
+$("#addPhraseBtn").onclick = () => {
+  openModal(`<h3>フレーズ追加</h3>
+    <label class="f">カテゴリ</label>
+    <select class="text-input" id="mCat">${CATS.map((c,i) => `<option value="${i}" ${i===12?"selected":""}>${c}</option>`).join("")}</select>
+    <label class="f">英文</label><textarea class="text-input" id="mEn" rows="3"></textarea>
+    <label class="f">和訳</label><input class="text-input" id="mJa">
+    <button class="big-btn" style="margin-top:16px" onclick="addPhrase()">追加</button>`);
+};
+window.addPhrase = () => {
+  const en = $("#mEn").value.trim(), ja = $("#mJa").value.trim();
+  if(!en) return;
+  const id = Math.max(1000, ...S.custom.map(x => x.id)) + 1;
+  S.custom.push({ id, c: +$("#mCat").value, en, ja });
+  save(); closeModal(); renderPhrases(); toast("追加しました");
+};
+function openModal(html){ $("#modalSheet").innerHTML = `<button class="close-x" onclick="closeModal()">✕</button>` + html; $("#modal").classList.add("open"); }
+window.closeModal = () => $("#modal").classList.remove("open");
+$("#modal").onclick = e => { if(e.target.id === "modal") closeModal(); };
+
+/* ================= SETTINGS / SYNC ================= */
+$("#setWake").checked = S.cfg.wake;
+$("#setWake").onchange = e => { S.cfg.wake = e.target.checked; save(); };
+$("#setRate").value = String(S.cfg.rate.toFixed(1));
+$("#setRate").onchange = e => { S.cfg.rate = +e.target.value; save(); };
+$("#setGasUrl").value = S.cfg.gasUrl;
+$("#setGasUrl").onchange = e => { S.cfg.gasUrl = e.target.value.trim(); save(); };
+$("#setTzOn").checked = S.cfg.tzOn;
+$("#setTzOn").onchange = e => { S.cfg.tzOn = e.target.checked; save(); };
+$("#setTzUrl").value = S.cfg.tzUrl;
+$("#setTzUrl").onchange = e => { S.cfg.tzUrl = e.target.value.trim(); save(); };
+$("#setTzHabit").value = S.cfg.tzHabit;
+$("#setTzHabit").onchange = e => { S.cfg.tzHabit = e.target.value.trim(); save(); };
+
+async function sendTsuzukeru(){
+  if(!S.cfg.tzOn || !S.cfg.tzUrl || !S.cfg.tzHabit) return;
+  try{
+    await fetch(S.cfg.tzUrl, { method:"POST", mode:"no-cors",
+      body: JSON.stringify({ app:"perapera", type:"habitDone", habitId:S.cfg.tzHabit, date:today() }) });
+  }catch(e){}
+}
+$("#gasUpBtn").onclick = async () => {
+  if(!S.cfg.gasUrl){ toast("GAS URLを入力してください"); return; }
+  try{
+    await fetch(S.cfg.gasUrl, { method:"POST", mode:"no-cors",
+      body: JSON.stringify({ app:"perapera", type:"backup",
+        payload:{ srs:S.srs, custom:S.custom, archived:S.archived, edits:S.edits, dates:S.dates } }) });
+    toast("アップロードしました");
+  }catch(e){ toast("アップロード失敗"); }
+};
+$("#gasDownBtn").onclick = async () => {
+  if(!S.cfg.gasUrl){ toast("GAS URLを入力してください"); return; }
+  try{
+    const res = await fetch(S.cfg.gasUrl + "?app=perapera&type=restore");
+    const data = await res.json();
+    if(!data || !data.payload){ toast("データがありません"); return; }
+    const p = data.payload;
+    // マージ: 日付は和集合、SRSは復習回数が多い方を採用
+    Object.entries(p.dates || {}).forEach(([k,v]) => { S.dates[k] = Math.max(S.dates[k] || 0, v); });
+    Object.entries(p.srs || {}).forEach(([id,st]) => {
+      if(!S.srs[id] || st.reps > S.srs[id].reps) S.srs[id] = st;
+    });
+    (p.custom || []).forEach(c => { if(!S.custom.find(x => x.id === c.id)) S.custom.push(c); });
+    (p.archived || []).forEach(id => { if(!S.archived.includes(id)) S.archived.push(id); });
+    Object.assign(S.edits, p.edits || {});
+    save(); toast("ダウンロード・マージしました"); renderHome();
+  }catch(e){ toast("ダウンロード失敗(GAS側のCORS設定を確認)"); }
+};
+
+const GAS_CODE = `// ペラペラ用 GAS(スプレッドシートに紐付けて公開: 全員/匿名)
+function doPost(e){
+  var d = JSON.parse(e.postData.contents);
+  if(d.app !== "perapera") return out({ok:false});
+  var sh = getSheet_();
+  sh.getRange(1,1).setValue(JSON.stringify(d.payload));
+  sh.getRange(1,2).setValue(new Date());
+  return out({ok:true});
+}
+function doGet(e){
+  if(e.parameter.app !== "perapera") return out({ok:false});
+  var sh = getSheet_();
+  var raw = sh.getRange(1,1).getValue();
+  return out({ok:true, payload: raw ? JSON.parse(raw) : null});
+}
+function getSheet_(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  return ss.getSheetByName("perapera") || ss.insertSheet("perapera");
+}
+function out(obj){
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+
+const TZ_CODE = `// Tsuzukeru側 受け口追記例(既存doPostに分岐を追加)
+// if(d.app === "perapera" && d.type === "habitDone"){
+//   recordHabit_(d.habitId, d.date);  // 既存の習慣記録関数を呼ぶ
+//   return out({ok:true});
+// }`;
+
+function copyText(t){ navigator.clipboard.writeText(t).then(() => toast("コピーしました")).catch(() => toast("コピー失敗")); }
+$("#gasCodeBtn").onclick = () => copyText(GAS_CODE);
+$("#tzCodeBtn").onclick = () => copyText(TZ_CODE);
+
+/* ================= INIT ================= */
+applyTheme();
+renderHome();
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden){ synth.cancel(); session.token++; wakeOff();
+    if($("#session").style.display === "block"){
+      $("#session").style.display = "none"; $("#startCard").style.display = "block";
+    }
+  }
+});
+</script>
+</body>
+</html>
