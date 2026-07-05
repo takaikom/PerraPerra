@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ペラペラ">
 <title>ペラペラ</title>
+<meta name="theme-color" content="#5B6CFF">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%235B6CFF'/%3E%3Ctext x='50' y='66' font-size='46' text-anchor='middle' fill='white' font-weight='bold'%3E%E3%83%9A%3C/text%3E%3C/svg%3E">
@@ -291,6 +294,11 @@ label.f{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px;font-wei
     </select>
   </div>
 
+  <div class="set-row">
+    <div><div class="t">学習言語</div><div class="d">フレーズ・音声・認識の言語</div></div>
+    <select id="setLearnLang" style="background:var(--bg);color:var(--text);border:1.5px solid var(--line);border-radius:10px;padding:8px"></select>
+  </div>
+
   <div class="sec-title">データ同期(GAS)</div>
   <div class="set-row" style="flex-direction:column;align-items:stretch">
     <div><div class="t">GAS URL</div><div class="d">進捗をGoogle Sheetsにバックアップ</div></div>
@@ -313,7 +321,7 @@ label.f{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px;font-wei
     <button class="small-btn gray" id="tzCodeBtn" style="margin-top:10px;align-self:flex-start">受け口GASコードをコピー</button>
   </div>
 
-  <div class="ver">ペラペラ v1.0</div>
+  <div class="ver">ペラペラ v2.0</div>
 </div>
 
 <nav>
@@ -328,177 +336,233 @@ label.f{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px;font-wei
 
 <script>
 /* ================= DATA ================= */
-const CATS = ["あいさつ・雑談","会議進行","メール","電話・オンライン会議","治験オペレーション","規制当局対応","統計","文書作成","安全性","プレゼン","依頼・交渉","進捗管理","My Apps"];
+const CATS = ["あいさつ・雑談","会議進行","メール","電話・オンライン会議","治験オペレーション","規制当局対応","統計","文書作成","安全性","プレゼン","依頼・交渉","進捗管理","出張・移動","会食・レストラン","日程調整","My Apps"];
+const MYAPPS = 15;
 const P = [];
 let _id = 1;
-function d(c, arr){ arr.forEach(([en,ja]) => P.push({id:_id++, c, en, ja})); }
+function d(c, arr){ arr.forEach(a => P.push({ id:_id++, c, ja:a[0], t:{ en:a[1], zh:a[2], ko:a[3], es:a[4], fr:a[5], de:a[6] } })); }
 
-d(0,[["Thank you for taking the time to meet with us today.","本日はお時間をいただきありがとうございます"],
-["It's been a while. How have you been?","お久しぶりです。お元気でしたか"],
-["I look forward to working with you on this project.","このプロジェクトでご一緒できるのを楽しみにしています"],
-["Did you have any trouble finding our office?","オフィスはすぐわかりましたか"],
-["How was your flight to Tokyo?","東京までのフライトはいかがでしたか"],
-["Let me introduce myself. I'm in charge of regulatory affairs.","自己紹介します。薬事を担当しています"],
-["I've heard a lot about your work.","お噂はかねがね伺っています"],
-["Please let me know if you need anything during your stay.","滞在中、何かあればお知らせください"],
-["It was a pleasure meeting you.","お会いできてよかったです"],
-["I hope we can talk again soon.","またすぐお話しできることを願っています"],
-["Thank you for your hospitality during our visit.","訪問中のおもてなしに感謝します"],
-["Have a safe trip back home.","お気をつけてお帰りください"]]);
+d(0,[
+["本日はお時間をいただきありがとうございます","Thank you for taking the time to meet with us today.","感谢您今天抽出时间与我们会面。","오늘 저희와 만나 주셔서 감사합니다.","Gracias por dedicarnos su tiempo hoy.","Merci d'avoir pris le temps de nous rencontrer aujourd'hui.","Vielen Dank, dass Sie sich heute Zeit für uns genommen haben."],
+["お久しぶりです。お元気でしたか","It's been a while. How have you been?","好久不见,您最近怎么样?","오랜만입니다. 어떻게 지내셨어요?","Cuánto tiempo. ¿Cómo ha estado?","Ça fait longtemps. Comment allez-vous ?","Lange nicht gesehen. Wie geht es Ihnen?"],
+["このプロジェクトでご一緒できるのを楽しみにしています","I look forward to working with you on this project.","期待与您在这个项目上合作。","이 프로젝트에서 함께 일하게 되어 기대가 큽니다.","Espero con interés trabajar con usted en este proyecto.","J'ai hâte de travailler avec vous sur ce projet.","Ich freue mich auf die Zusammenarbeit mit Ihnen bei diesem Projekt."],
+["オフィスはすぐわかりましたか","Did you have any trouble finding our office?","找我们办公室还顺利吗?","사무실 찾아오시는 데 어려움은 없으셨나요?","¿Le costó encontrar nuestra oficina?","Avez-vous eu du mal à trouver nos bureaux ?","Haben Sie unser Büro gut gefunden?"],
+["東京までのフライトはいかがでしたか","How was your flight to Tokyo?","您飞来东京的旅途怎么样?","도쿄까지 오시는 비행은 어떠셨나요?","¿Qué tal su vuelo a Tokio?","Comment s'est passé votre vol pour Tokyo ?","Wie war Ihr Flug nach Tokio?"],
+["自己紹介します。薬事を担当しています","Let me introduce myself. I'm in charge of regulatory affairs.","请允许我自我介绍,我负责药政事务。","제 소개를 하겠습니다. 저는 인허가 업무를 담당하고 있습니다.","Permítame presentarme. Estoy a cargo de asuntos regulatorios.","Permettez-moi de me présenter. Je suis responsable des affaires réglementaires.","Darf ich mich vorstellen? Ich bin für regulatorische Angelegenheiten zuständig."],
+["お噂はかねがね伺っています","I've heard a lot about your work.","久闻您的大名。","말씀 많이 들었습니다.","He oído hablar mucho de su trabajo.","J'ai beaucoup entendu parler de votre travail.","Ich habe viel von Ihrer Arbeit gehört."],
+["滞在中、何かあればお知らせください","Please let me know if you need anything during your stay.","在您逗留期间如有需要请随时告诉我。","머무시는 동안 필요한 것이 있으면 알려 주세요.","Avíseme si necesita algo durante su estancia.","N'hésitez pas à me dire si vous avez besoin de quelque chose pendant votre séjour.","Sagen Sie mir bitte Bescheid, wenn Sie während Ihres Aufenthalts etwas brauchen."],
+["お会いできてよかったです","It was a pleasure meeting you.","很高兴认识您。","만나서 반가웠습니다.","Fue un placer conocerle.","Ce fut un plaisir de vous rencontrer.","Es war mir eine Freude, Sie kennenzulernen."],
+["またすぐお話しできることを願っています","I hope we can talk again soon.","希望我们很快能再交流。","곧 다시 이야기 나눌 수 있기를 바랍니다.","Espero que podamos hablar de nuevo pronto.","J'espère que nous pourrons bientôt reparler.","Ich hoffe, wir können bald wieder sprechen."],
+["訪問中のおもてなしに感謝します","Thank you for your hospitality during our visit.","感谢您在我们访问期间的热情接待。","방문 기간 동안 환대해 주셔서 감사합니다.","Gracias por su hospitalidad durante nuestra visita.","Merci pour votre hospitalité lors de notre visite.","Vielen Dank für Ihre Gastfreundschaft während unseres Besuchs."],
+["お気をつけてお帰りください","Have a safe trip back home.","祝您回程一路平安。","안전하게 돌아가시길 바랍니다.","Que tenga un buen viaje de regreso.","Bon retour chez vous.","Gute Heimreise."]]);
 
-d(1,[["Shall we get started?","始めましょうか"],
-["Could you speak a little more slowly, please?","もう少しゆっくり話していただけますか"],
-["Sorry to interrupt, but may I ask a question?","途中ですみません、質問してもいいですか"],
-["Could you explain that in more detail?","もう少し詳しく説明していただけますか"],
-["Let me confirm my understanding.","理解を確認させてください"],
-["We are running out of time, so let's move on.","時間がないので次に進みましょう"],
-["Can we come back to this point later?","この点は後で戻ってもいいですか"],
-["Does anyone have any questions so far?","ここまでで質問はありますか"],
-["Let's summarize the action items before we close.","終わる前にアクションアイテムをまとめましょう"],
-["I'll send out the minutes by tomorrow.","明日までに議事録を送ります"],
-["Could we schedule a follow-up meeting next week?","来週フォローアップ会議を設定できますか"],
-["Thank you all for joining today.","本日はご参加ありがとうございました"]]);
+d(1,[
+["始めましょうか","Shall we get started?","我们开始吧?","시작할까요?","¿Empezamos?","On commence ?","Sollen wir anfangen?"],
+["もう少しゆっくり話していただけますか","Could you speak a little more slowly, please?","您能说得慢一点吗?","조금 천천히 말씀해 주시겠어요?","¿Podría hablar un poco más despacio, por favor?","Pourriez-vous parler un peu plus lentement, s'il vous plaît ?","Könnten Sie bitte etwas langsamer sprechen?"],
+["途中ですみません、質問してもいいですか","Sorry to interrupt, but may I ask a question?","抱歉打断一下,我可以问个问题吗?","끼어들어 죄송하지만 질문해도 될까요?","Perdón por interrumpir, ¿puedo hacer una pregunta?","Désolé de vous interrompre, puis-je poser une question ?","Entschuldigen Sie die Unterbrechung, darf ich eine Frage stellen?"],
+["もう少し詳しく説明していただけますか","Could you explain that in more detail?","您能更详细地解释一下吗?","좀 더 자세히 설명해 주시겠어요?","¿Podría explicarlo con más detalle?","Pourriez-vous expliquer cela plus en détail ?","Könnten Sie das genauer erklären?"],
+["理解を確認させてください","Let me confirm my understanding.","让我确认一下我的理解。","제가 이해한 것을 확인하겠습니다.","Permítame confirmar lo que he entendido.","Laissez-moi vérifier que j'ai bien compris.","Lassen Sie mich mein Verständnis überprüfen."],
+["時間がないので次に進みましょう","We are running out of time, so let's move on.","时间不多了,我们继续下一项吧。","시간이 부족하니 다음으로 넘어가죠.","Se nos acaba el tiempo, sigamos adelante.","Le temps presse, passons à la suite.","Die Zeit wird knapp, machen wir weiter."],
+["この点は後で戻ってもいいですか","Can we come back to this point later?","我们可以稍后再回到这一点吗?","이 부분은 나중에 다시 다뤄도 될까요?","¿Podemos volver a este punto más tarde?","Pouvons-nous revenir sur ce point plus tard ?","Können wir später auf diesen Punkt zurückkommen?"],
+["ここまでで質問はありますか","Does anyone have any questions so far?","到目前为止有人有问题吗?","여기까지 질문 있으신가요?","¿Alguien tiene preguntas hasta ahora?","Quelqu'un a-t-il des questions jusqu'ici ?","Hat bisher jemand Fragen?"],
+["終わる前にアクションアイテムをまとめましょう","Let's summarize the action items before we close.","结束前我们总结一下行动事项。","마치기 전에 액션 아이템을 정리합시다.","Resumamos las tareas pendientes antes de terminar.","Résumons les actions à mener avant de conclure.","Fassen wir die Aufgaben zusammen, bevor wir schließen."],
+["明日までに議事録を送ります","I'll send out the minutes by tomorrow.","我明天之前会发出会议纪要。","내일까지 회의록을 보내드리겠습니다.","Enviaré el acta antes de mañana.","J'enverrai le compte rendu d'ici demain.","Ich schicke das Protokoll bis morgen."],
+["来週フォローアップ会議を設定できますか","Could we schedule a follow-up meeting next week?","我们下周能安排一次后续会议吗?","다음 주에 후속 회의를 잡을 수 있을까요?","¿Podríamos programar una reunión de seguimiento la próxima semana?","Pourrions-nous prévoir une réunion de suivi la semaine prochaine ?","Könnten wir nächste Woche ein Folgetreffen vereinbaren?"],
+["本日はご参加ありがとうございました","Thank you all for joining today.","感谢大家今天的参与。","오늘 참석해 주셔서 감사합니다.","Gracias a todos por participar hoy.","Merci à tous d'avoir participé aujourd'hui.","Vielen Dank an alle für die Teilnahme heute."]]);
 
-d(2,[["I hope this email finds you well.","お元気でお過ごしのことと思います"],
-["I'm writing to follow up on my previous email.","先日のメールの件でご連絡しています"],
-["Please find the attached file for your review.","添付ファイルをご確認ください"],
-["Could you reply by the end of this week?","今週末までにご返信いただけますか"],
-["I apologize for the late reply.","返信が遅くなり申し訳ありません"],
-["Please let me know if you have any questions.","ご質問があればお知らせください"],
-["I would appreciate your feedback on the draft.","ドラフトへのフィードバックをいただけると助かります"],
-["Just a gentle reminder about the deadline tomorrow.","明日が締切ですのでリマインドです"],
-["Thank you for your prompt response.","迅速なご返信ありがとうございます"],
-["I'm copying my colleague on this email.","同僚をCCに入れています"],
-["Please disregard my previous email.","先ほどのメールは破棄してください"],
-["I look forward to hearing from you.","ご連絡をお待ちしています"]]);
+d(2,[
+["お元気でお過ごしのことと思います","I hope this email finds you well.","见信安好。","잘 지내고 계시길 바랍니다.","Espero que se encuentre bien.","J'espère que vous allez bien.","Ich hoffe, es geht Ihnen gut."],
+["先日のメールの件でご連絡しています","I'm writing to follow up on my previous email.","我写信是想跟进我之前的邮件。","이전 메일에 대한 후속 연락을 드립니다.","Le escribo para dar seguimiento a mi correo anterior.","Je vous écris pour faire suite à mon précédent e-mail.","Ich schreibe Ihnen bezüglich meiner letzten E-Mail."],
+["添付ファイルをご確認ください","Please find the attached file for your review.","请查收附件。","첨부 파일을 확인해 주시기 바랍니다.","Adjunto el archivo para su revisión.","Veuillez trouver le fichier ci-joint pour votre examen.","Anbei finden Sie die Datei zur Durchsicht."],
+["今週末までにご返信いただけますか","Could you reply by the end of this week?","您能在本周末之前回复吗?","이번 주말까지 회신해 주시겠어요?","¿Podría responder antes del final de esta semana?","Pourriez-vous répondre d'ici la fin de la semaine ?","Könnten Sie bis Ende dieser Woche antworten?"],
+["返信が遅くなり申し訳ありません","I apologize for the late reply.","抱歉回复晚了。","답장이 늦어 죄송합니다.","Disculpe la tardanza en responder.","Je vous prie de m'excuser pour cette réponse tardive.","Entschuldigen Sie die späte Antwort."],
+["ご質問があればお知らせください","Please let me know if you have any questions.","如有任何问题请告诉我。","질문이 있으시면 알려 주세요.","Avíseme si tiene alguna pregunta.","N'hésitez pas à me contacter si vous avez des questions.","Bei Fragen können Sie sich gerne melden."],
+["ドラフトへのフィードバックをいただけると助かります","I would appreciate your feedback on the draft.","希望您能对草稿提出意见。","초안에 대한 의견을 주시면 감사하겠습니다.","Agradecería sus comentarios sobre el borrador.","J'apprécierais vos commentaires sur le projet.","Ich wäre dankbar für Ihr Feedback zum Entwurf."],
+["明日が締切ですのでリマインドです","Just a gentle reminder about the deadline tomorrow.","温馨提醒:明天是截止日期。","내일이 마감일임을 다시 한번 알려드립니다.","Un pequeño recordatorio sobre la fecha límite de mañana.","Petit rappel concernant l'échéance de demain.","Nur eine kleine Erinnerung an die morgige Frist."],
+["迅速なご返信ありがとうございます","Thank you for your prompt response.","感谢您的及时回复。","신속한 회신 감사합니다.","Gracias por su pronta respuesta.","Merci pour votre réponse rapide.","Vielen Dank für Ihre schnelle Antwort."],
+["同僚をCCに入れています","I'm copying my colleague on this email.","我在这封邮件中抄送了我的同事。","이 메일에 동료를 참조로 넣었습니다.","Pongo en copia a mi colega en este correo.","Je mets mon collègue en copie de cet e-mail.","Ich setze meinen Kollegen in Kopie."],
+["先ほどのメールは破棄してください","Please disregard my previous email.","请忽略我之前的邮件。","이전 메일은 무시해 주세요.","Por favor, ignore mi correo anterior.","Veuillez ne pas tenir compte de mon e-mail précédent.","Bitte ignorieren Sie meine vorherige E-Mail."],
+["ご連絡をお待ちしています","I look forward to hearing from you.","期待您的回复。","연락 기다리겠습니다.","Quedo a la espera de su respuesta.","Dans l'attente de votre réponse.","Ich freue mich auf Ihre Antwort."]]);
 
-d(3,[["Can you hear me clearly?","はっきり聞こえますか"],
-["Your voice is breaking up a little.","音声が少し途切れています"],
-["Could you mute your microphone, please?","マイクをミュートしていただけますか"],
-["Let me share my screen.","画面を共有します"],
-["Can everyone see my slides?","スライドは見えていますか"],
-["Sorry, I was on mute.","すみません、ミュートでした"],
-["We seem to have lost him. Let's wait a moment.","彼が落ちたようです。少し待ちましょう"],
-["Could you say that again? The connection was unstable.","もう一度言っていただけますか。接続が不安定でした"],
-["I'll drop the link in the chat.","チャットにリンクを貼ります"],
-["Let's take a five-minute break.","5分休憩しましょう"],
-["I have to leave early for another meeting.","別の会議のため早めに失礼します"],
-["I'll record this session and share it later.","このセッションを録画して後で共有します"]]);
+d(3,[
+["はっきり聞こえますか","Can you hear me clearly?","你们能听清楚吗?","잘 들리시나요?","¿Me escuchan bien?","Vous m'entendez bien ?","Können Sie mich gut hören?"],
+["音声が少し途切れています","Your voice is breaking up a little.","您的声音有点断断续续。","목소리가 조금 끊깁니다.","Su voz se corta un poco.","Votre voix est un peu hachée.","Ihre Stimme ist etwas abgehackt."],
+["マイクをミュートしていただけますか","Could you mute your microphone, please?","请您将麦克风静音好吗?","마이크를 음소거해 주시겠어요?","¿Podría silenciar su micrófono, por favor?","Pourriez-vous couper votre micro, s'il vous plaît ?","Könnten Sie bitte Ihr Mikrofon stummschalten?"],
+["画面を共有します","Let me share my screen.","我来共享屏幕。","화면을 공유하겠습니다.","Voy a compartir mi pantalla.","Je vais partager mon écran.","Ich teile jetzt meinen Bildschirm."],
+["スライドは見えていますか","Can everyone see my slides?","大家能看到我的幻灯片吗?","슬라이드가 다들 보이시나요?","¿Todos pueden ver mis diapositivas?","Tout le monde voit mes diapositives ?","Können alle meine Folien sehen?"],
+["すみません、ミュートでした","Sorry, I was on mute.","抱歉,我刚才静音了。","죄송합니다, 음소거 상태였네요.","Perdón, estaba en silencio.","Désolé, j'étais en sourdine.","Entschuldigung, ich war stummgeschaltet."],
+["彼が落ちたようです。少し待ちましょう","We seem to have lost him. Let's wait a moment.","他好像掉线了,我们稍等一下。","그분 연결이 끊긴 것 같네요. 잠시 기다리죠.","Parece que lo hemos perdido. Esperemos un momento.","On dirait qu'on l'a perdu. Attendons un instant.","Wir haben ihn wohl verloren. Warten wir kurz."],
+["もう一度言っていただけますか。接続が不安定でした","Could you say that again? The connection was unstable.","您能再说一遍吗?刚才连接不稳定。","다시 한번 말씀해 주시겠어요? 연결이 불안정했습니다.","¿Podría repetirlo? La conexión estaba inestable.","Pourriez-vous répéter ? La connexion était instable.","Könnten Sie das wiederholen? Die Verbindung war instabil."],
+["チャットにリンクを貼ります","I'll drop the link in the chat.","我把链接发到聊天框里。","링크를 채팅창에 올리겠습니다.","Pondré el enlace en el chat.","Je mets le lien dans le chat.","Ich poste den Link im Chat."],
+["5分休憩しましょう","Let's take a five-minute break.","我们休息五分钟。","5분간 휴식합시다.","Hagamos una pausa de cinco minutos.","Faisons une pause de cinq minutes.","Machen wir fünf Minuten Pause."],
+["別の会議のため早めに失礼します","I have to leave early for another meeting.","我因另一个会议需要提前离开。","다른 회의가 있어 먼저 나가보겠습니다.","Tengo que salir antes por otra reunión.","Je dois partir plus tôt pour une autre réunion.","Ich muss wegen eines anderen Termins früher gehen."],
+["このセッションを録画して後で共有します","I'll record this session and share it later.","我会录制本次会议并稍后分享。","이 세션을 녹화해서 나중에 공유하겠습니다.","Grabaré esta sesión y la compartiré después.","Je vais enregistrer cette session et la partager ensuite.","Ich zeichne diese Sitzung auf und teile sie später."]]);
 
-d(4,[["The first patient was enrolled last week.","先週、最初の患者が組み入れられました"],
-["Patient enrollment is behind schedule.","患者登録が予定より遅れています"],
-["We need to amend the protocol before the next visit.","次回の来院前に治験実施計画書を改訂する必要があります"],
-["The site initiation visit is scheduled for next month.","施設立ち上げ訪問は来月の予定です"],
-["Three sites have completed the monitoring visit.","3施設でモニタリング訪問が完了しました"],
-["We found several protocol deviations at this site.","この施設でいくつかのプロトコル逸脱が見つかりました"],
-["The database lock is planned for the end of March.","データベースロックは3月末の予定です"],
-["Informed consent must be obtained before any procedures.","いかなる手順の前にも同意取得が必要です"],
-["The interim analysis will be conducted by an independent committee.","中間解析は独立委員会が実施します"],
-["We are considering adding two more sites in Asia.","アジアで2施設の追加を検討しています"],
-["The last patient completed the final visit yesterday.","昨日、最後の患者が最終来院を完了しました"],
-["The clinical study report is due in June.","治験総括報告書の期限は6月です"]]);
+d(4,[
+["先週、最初の患者が組み入れられました","The first patient was enrolled last week.","第一例患者已于上周入组。","지난주에 첫 환자가 등록되었습니다.","El primer paciente fue reclutado la semana pasada.","Le premier patient a été inclus la semaine dernière.","Der erste Patient wurde letzte Woche eingeschlossen."],
+["患者登録が予定より遅れています","Patient enrollment is behind schedule.","患者入组进度落后于计划。","환자 등록이 일정보다 지연되고 있습니다.","El reclutamiento de pacientes va retrasado.","Le recrutement des patients est en retard.","Die Patientenrekrutierung liegt hinter dem Zeitplan."],
+["次回の来院前に治験実施計画書を改訂する必要があります","We need to amend the protocol before the next visit.","我们需要在下次访视前修订方案。","다음 방문 전에 프로토콜을 개정해야 합니다.","Debemos enmendar el protocolo antes de la próxima visita.","Nous devons amender le protocole avant la prochaine visite.","Wir müssen das Prüfprotokoll vor dem nächsten Besuch ändern."],
+["施設立ち上げ訪問は来月の予定です","The site initiation visit is scheduled for next month.","中心启动访视定于下个月。","기관 개시 방문은 다음 달로 예정되어 있습니다.","La visita de inicio del centro está programada para el próximo mes.","La visite d'initiation du site est prévue le mois prochain.","Der Initiierungsbesuch des Zentrums ist für nächsten Monat geplant."],
+["3施設でモニタリング訪問が完了しました","Three sites have completed the monitoring visit.","三个中心已完成监查访视。","세 개 기관이 모니터링 방문을 완료했습니다.","Tres centros han completado la visita de monitorización.","Trois sites ont terminé la visite de monitoring.","Drei Zentren haben den Monitoring-Besuch abgeschlossen."],
+["この施設でいくつかのプロトコル逸脱が見つかりました","We found several protocol deviations at this site.","我们在该中心发现了几处方案偏离。","이 기관에서 여러 건의 프로토콜 위반이 발견되었습니다.","Encontramos varias desviaciones del protocolo en este centro.","Nous avons constaté plusieurs déviations au protocole sur ce site.","Wir haben an diesem Zentrum mehrere Protokollabweichungen festgestellt."],
+["データベースロックは3月末の予定です","The database lock is planned for the end of March.","数据库锁定计划在三月底。","데이터베이스 잠금은 3월 말로 계획되어 있습니다.","El cierre de la base de datos está previsto para finales de marzo.","Le gel de la base de données est prévu pour fin mars.","Der Datenbankschluss ist für Ende März geplant."],
+["いかなる手順の前にも同意取得が必要です","Informed consent must be obtained before any procedures.","任何操作前必须获得知情同意。","어떤 절차보다 먼저 동의서를 받아야 합니다.","El consentimiento informado debe obtenerse antes de cualquier procedimiento.","Le consentement éclairé doit être obtenu avant toute procédure.","Die Einwilligung muss vor allen Maßnahmen eingeholt werden."],
+["中間解析は独立委員会が実施します","The interim analysis will be conducted by an independent committee.","中期分析将由独立委员会进行。","중간 분석은 독립 위원회가 수행합니다.","El análisis intermedio será realizado por un comité independiente.","L'analyse intermédiaire sera réalisée par un comité indépendant.","Die Zwischenanalyse wird von einem unabhängigen Komitee durchgeführt."],
+["アジアで2施設の追加を検討しています","We are considering adding two more sites in Asia.","我们正考虑在亚洲增加两个中心。","아시아에 두 개 기관 추가를 검토 중입니다.","Estamos considerando añadir dos centros más en Asia.","Nous envisageons d'ajouter deux sites supplémentaires en Asie.","Wir erwägen, zwei weitere Zentren in Asien hinzuzufügen."],
+["昨日、最後の患者が最終来院を完了しました","The last patient completed the final visit yesterday.","最后一例患者昨天完成了末次访视。","어제 마지막 환자가 최종 방문을 마쳤습니다.","El último paciente completó la visita final ayer.","Le dernier patient a terminé sa dernière visite hier.","Der letzte Patient hat gestern den Abschlussbesuch beendet."],
+["治験総括報告書の期限は6月です","The clinical study report is due in June.","临床研究报告将于六月截止。","임상시험 결과보고서 기한은 6월입니다.","El informe del estudio clínico vence en junio.","Le rapport d'étude clinique est attendu en juin.","Der Studienbericht ist im Juni fällig."]]);
 
-d(5,[["We received an inquiry from the PMDA yesterday.","昨日PMDAから照会を受けました"],
-["The response to the agency is due within ten business days.","当局への回答期限は10営業日以内です"],
-["We plan to request a consultation meeting with the PMDA.","PMDAとの相談を申し込む予定です"],
-["The submission package is under internal review.","申請資料は社内レビュー中です"],
-["The agency asked us to provide additional safety data.","当局から追加の安全性データを求められました"],
-["We expect approval in the first quarter of next year.","来年第1四半期の承認を見込んでいます"],
-["This study was conducted in accordance with ICH guidelines.","本試験はICHガイドラインに従って実施されました"],
-["The briefing document should be finalized by Friday.","説明資料は金曜までに確定する必要があります"],
-["We need to align our response strategy with the global team.","回答方針をグローバルチームとすり合わせる必要があります"],
-["The agency accepted our justification.","当局は当社の正当化を受け入れました"],
-["A post-marketing study may be required as a condition of approval.","承認条件として製造販売後調査が求められる可能性があります"],
-["Let's discuss how to address the agency's concerns.","当局の懸念にどう対応するか議論しましょう"]]);
+d(5,[
+["昨日PMDAから照会を受けました","We received an inquiry from the PMDA yesterday.","我们昨天收到了PMDA的问询。","어제 PMDA로부터 조회를 받았습니다.","Ayer recibimos una consulta de la PMDA.","Nous avons reçu hier une demande de la PMDA.","Wir haben gestern eine Anfrage der PMDA erhalten."],
+["当局への回答期限は10営業日以内です","The response to the agency is due within ten business days.","对监管机构的回复须在十个工作日内提交。","당국에 대한 답변 기한은 영업일 기준 10일 이내입니다.","La respuesta a la agencia debe presentarse en diez días hábiles.","La réponse à l'agence doit être soumise sous dix jours ouvrés.","Die Antwort an die Behörde ist innerhalb von zehn Werktagen fällig."],
+["PMDAとの相談を申し込む予定です","We plan to request a consultation meeting with the PMDA.","我们计划向PMDA申请咨询会议。","PMDA와의 상담 회의를 신청할 예정입니다.","Planeamos solicitar una reunión de consulta con la PMDA.","Nous prévoyons de demander une réunion de consultation avec la PMDA.","Wir planen, eine Beratung mit der PMDA zu beantragen."],
+["申請資料は社内レビュー中です","The submission package is under internal review.","申报资料正在内部审核中。","제출 자료는 내부 검토 중입니다.","El expediente de presentación está en revisión interna.","Le dossier de soumission est en cours de revue interne.","Das Einreichungsdossier befindet sich in der internen Prüfung."],
+["当局から追加の安全性データを求められました","The agency asked us to provide additional safety data.","监管机构要求我们提供额外的安全性数据。","당국이 추가 안전성 데이터 제출을 요청했습니다.","La agencia nos pidió datos adicionales de seguridad.","L'agence nous a demandé des données de sécurité supplémentaires.","Die Behörde hat zusätzliche Sicherheitsdaten angefordert."],
+["来年第1四半期の承認を見込んでいます","We expect approval in the first quarter of next year.","我们预计明年第一季度获批。","내년 1분기 승인을 예상하고 있습니다.","Esperamos la aprobación en el primer trimestre del próximo año.","Nous attendons l'approbation au premier trimestre de l'année prochaine.","Wir erwarten die Zulassung im ersten Quartal nächsten Jahres."],
+["本試験はICHガイドラインに従って実施されました","This study was conducted in accordance with ICH guidelines.","本研究按照ICH指导原则进行。","본 시험은 ICH 가이드라인에 따라 수행되었습니다.","Este estudio se realizó de acuerdo con las directrices de la ICH.","Cette étude a été menée conformément aux lignes directrices ICH.","Diese Studie wurde gemäß den ICH-Richtlinien durchgeführt."],
+["説明資料は金曜までに確定する必要があります","The briefing document should be finalized by Friday.","说明文件应在周五前定稿。","브리핑 문서는 금요일까지 확정되어야 합니다.","El documento informativo debe finalizarse antes del viernes.","Le document d'information doit être finalisé d'ici vendredi.","Das Briefing-Dokument sollte bis Freitag fertiggestellt sein."],
+["回答方針をグローバルチームとすり合わせる必要があります","We need to align our response strategy with the global team.","我们需要与全球团队统一回复策略。","답변 전략을 글로벌 팀과 조율해야 합니다.","Debemos alinear nuestra estrategia de respuesta con el equipo global.","Nous devons aligner notre stratégie de réponse avec l'équipe globale.","Wir müssen unsere Antwortstrategie mit dem globalen Team abstimmen."],
+["当局は当社の正当化を受け入れました","The agency accepted our justification.","监管机构接受了我们的论证。","당국이 우리의 정당성 설명을 수용했습니다.","La agencia aceptó nuestra justificación.","L'agence a accepté notre justification.","Die Behörde hat unsere Begründung akzeptiert."],
+["承認条件として製造販売後調査が求められる可能性があります","A post-marketing study may be required as a condition of approval.","作为批准条件,可能需要开展上市后研究。","승인 조건으로 시판 후 조사가 요구될 수 있습니다.","Puede requerirse un estudio poscomercialización como condición de aprobación.","Une étude post-commercialisation peut être exigée comme condition d'approbation.","Als Zulassungsauflage kann eine Anwendungsbeobachtung erforderlich sein."],
+["当局の懸念にどう対応するか議論しましょう","Let's discuss how to address the agency's concerns.","我们讨论一下如何回应监管机构的关切。","당국의 우려에 어떻게 대응할지 논의합시다.","Hablemos de cómo abordar las inquietudes de la agencia.","Discutons de la manière de répondre aux préoccupations de l'agence.","Besprechen wir, wie wir die Bedenken der Behörde ausräumen."]]);
 
-d(6,[["The primary endpoint was met with statistical significance.","主要評価項目は統計的有意に達成されました"],
-["The p-value was less than 0.05.","p値は0.05未満でした"],
-["The confidence interval excludes zero.","信頼区間はゼロを含みません"],
-["We used a mixed model for repeated measures.","反復測定混合モデルを使用しました"],
-["Missing data were handled by multiple imputation.","欠測データは多重補完で処理しました"],
-["The sample size was calculated based on a power of 90 percent.","症例数は検出力90%に基づいて算出しました"],
-["The analysis population is the full analysis set.","解析対象集団はFASです"],
-["The estimand framework follows ICH E9 R1.","estimandの枠組みはICH E9(R1)に従います"],
-["Subgroup analyses were pre-specified in the protocol.","部分集団解析は計画書で事前規定されました"],
-["The results were consistent across sensitivity analyses.","結果は感度解析間で一貫していました"],
-["Randomization was stratified by age and region.","無作為化は年齢と地域で層別しました"],
-["There was no significant difference between the two groups.","両群間に有意差はありませんでした"]]);
+d(6,[
+["主要評価項目は統計的有意に達成されました","The primary endpoint was met with statistical significance.","主要终点达到统计学显著性。","1차 평가변수가 통계적으로 유의하게 달성되었습니다.","El criterio de valoración principal se alcanzó con significación estadística.","Le critère principal a été atteint avec une significativité statistique.","Der primäre Endpunkt wurde mit statistischer Signifikanz erreicht."],
+["p値は0.05未満でした","The p-value was less than 0.05.","p值小于0.05。","p값은 0.05 미만이었습니다.","El valor de p fue menor de 0,05.","La valeur de p était inférieure à 0,05.","Der p-Wert lag unter 0,05."],
+["信頼区間はゼロを含みません","The confidence interval excludes zero.","置信区间不包含零。","신뢰구간은 0을 포함하지 않습니다.","El intervalo de confianza excluye el cero.","L'intervalle de confiance exclut zéro.","Das Konfidenzintervall schließt die Null aus."],
+["反復測定混合モデルを使用しました","We used a mixed model for repeated measures.","我们采用了重复测量混合模型。","반복측정 혼합모형을 사용했습니다.","Utilizamos un modelo mixto para medidas repetidas.","Nous avons utilisé un modèle mixte pour mesures répétées.","Wir haben ein gemischtes Modell für Messwiederholungen verwendet."],
+["欠測データは多重補完で処理しました","Missing data were handled by multiple imputation.","缺失数据采用多重填补处理。","결측치는 다중대체법으로 처리했습니다.","Los datos faltantes se manejaron mediante imputación múltiple.","Les données manquantes ont été traitées par imputation multiple.","Fehlende Daten wurden mittels multipler Imputation behandelt."],
+["症例数は検出力90%に基づいて算出しました","The sample size was calculated based on a power of 90 percent.","样本量按90%的检验效能计算。","표본 크기는 검정력 90%를 기준으로 산출했습니다.","El tamaño muestral se calculó con una potencia del 90 por ciento.","La taille de l'échantillon a été calculée sur la base d'une puissance de 90 %.","Die Fallzahl wurde auf Basis einer Power von 90 Prozent berechnet."],
+["解析対象集団はFASです","The analysis population is the full analysis set.","分析人群为全分析集。","분석 대상 집단은 FAS입니다.","La población de análisis es el conjunto de análisis completo.","La population d'analyse est l'ensemble d'analyse complet.","Die Analysepopulation ist das Full Analysis Set."],
+["estimandの枠組みはICH E9(R1)に従います","The estimand framework follows ICH E9 R1.","estimand框架遵循ICH E9 R1。","estimand 프레임워크는 ICH E9 R1을 따릅니다.","El marco de estimand sigue la ICH E9 R1.","Le cadre des estimands suit l'ICH E9 R1.","Das Estimand-Konzept folgt ICH E9 R1."],
+["部分集団解析は計画書で事前規定されました","Subgroup analyses were pre-specified in the protocol.","亚组分析已在方案中预先规定。","하위군 분석은 프로토콜에 사전 규정되었습니다.","Los análisis de subgrupos se preespecificaron en el protocolo.","Les analyses en sous-groupes étaient préspécifiées dans le protocole.","Subgruppenanalysen waren im Protokoll vorab festgelegt."],
+["結果は感度解析間で一貫していました","The results were consistent across sensitivity analyses.","各敏感性分析结果一致。","결과는 민감도 분석 간에 일관되었습니다.","Los resultados fueron consistentes en los análisis de sensibilidad.","Les résultats étaient cohérents entre les analyses de sensibilité.","Die Ergebnisse waren über die Sensitivitätsanalysen hinweg konsistent."],
+["無作為化は年齢と地域で層別しました","Randomization was stratified by age and region.","随机化按年龄和地区分层。","무작위배정은 연령과 지역으로 층화했습니다.","La aleatorización se estratificó por edad y región.","La randomisation était stratifiée par âge et région.","Die Randomisierung war nach Alter und Region stratifiziert."],
+["両群間に有意差はありませんでした","There was no significant difference between the two groups.","两组间无显著差异。","두 군 간에 유의한 차이는 없었습니다.","No hubo diferencias significativas entre los dos grupos.","Il n'y avait pas de différence significative entre les deux groupes.","Es gab keinen signifikanten Unterschied zwischen den beiden Gruppen."]]);
 
-d(7,[["The draft of Module 2.5 is ready for review.","Module 2.5のドラフトがレビュー可能になりました"],
-["Please check the consistency between the tables and the text.","表と本文の整合性を確認してください"],
-["This section needs to be updated with the latest data.","このセクションは最新データで更新が必要です"],
-["The document will go through quality control next week.","この文書は来週QCにかかります"],
-["We should keep the wording consistent with the protocol.","文言は計画書と一貫させるべきです"],
-["The reference list must follow the company style guide.","参考文献リストは社内スタイルガイドに従う必要があります"],
-["I'll incorporate your comments into the next version.","いただいたコメントを次版に反映します"],
-["The summary should not exceed ten pages.","要約は10ページ以内にすべきです"],
-["Let's clarify the definition of this term in the glossary.","この用語の定義を用語集で明確にしましょう"],
-["The final version requires sign-off from three departments.","最終版には3部門の承認が必要です"],
-["Please track your changes in the document.","変更履歴を残して修正してください"],
-["The English translation needs a native check.","英訳はネイティブチェックが必要です"]]);
+d(7,[
+["Module 2.5のドラフトがレビュー可能になりました","The draft of Module 2.5 is ready for review.","Module 2.5的草稿已可供审阅。","Module 2.5 초안이 검토 준비되었습니다.","El borrador del Módulo 2.5 está listo para revisión.","Le projet du module 2.5 est prêt pour relecture.","Der Entwurf von Modul 2.5 ist bereit zur Durchsicht."],
+["表と本文の整合性を確認してください","Please check the consistency between the tables and the text.","请核对表格与正文的一致性。","표와 본문의 일관성을 확인해 주세요.","Compruebe la coherencia entre las tablas y el texto.","Veuillez vérifier la cohérence entre les tableaux et le texte.","Bitte prüfen Sie die Konsistenz zwischen Tabellen und Text."],
+["このセクションは最新データで更新が必要です","This section needs to be updated with the latest data.","本节需要用最新数据更新。","이 섹션은 최신 데이터로 업데이트해야 합니다.","Esta sección debe actualizarse con los datos más recientes.","Cette section doit être mise à jour avec les dernières données.","Dieser Abschnitt muss mit den neuesten Daten aktualisiert werden."],
+["この文書は来週QCにかかります","The document will go through quality control next week.","该文件下周将进行质量控制。","이 문서는 다음 주에 QC를 거칩니다.","El documento pasará por control de calidad la próxima semana.","Le document passera le contrôle qualité la semaine prochaine.","Das Dokument durchläuft nächste Woche die Qualitätskontrolle."],
+["文言は計画書と一貫させるべきです","We should keep the wording consistent with the protocol.","措辞应与方案保持一致。","문구는 프로토콜과 일관되게 유지해야 합니다.","Debemos mantener la redacción coherente con el protocolo.","Nous devons garder une formulation cohérente avec le protocole.","Die Formulierung sollte mit dem Protokoll übereinstimmen."],
+["参考文献リストは社内スタイルガイドに従う必要があります","The reference list must follow the company style guide.","参考文献列表必须遵循公司格式指南。","참고문헌 목록은 사내 스타일 가이드를 따라야 합니다.","La lista de referencias debe seguir la guía de estilo de la empresa.","La liste des références doit suivre la charte de l'entreprise.","Das Literaturverzeichnis muss dem Styleguide des Unternehmens folgen."],
+["いただいたコメントを次版に反映します","I'll incorporate your comments into the next version.","我会把您的意见纳入下一版。","주신 의견을 다음 버전에 반영하겠습니다.","Incorporaré sus comentarios en la próxima versión.","J'intégrerai vos commentaires dans la prochaine version.","Ich werde Ihre Kommentare in die nächste Version einarbeiten."],
+["要約は10ページ以内にすべきです","The summary should not exceed ten pages.","摘要不应超过十页。","요약은 10페이지를 넘지 않아야 합니다.","El resumen no debe superar las diez páginas.","Le résumé ne doit pas dépasser dix pages.","Die Zusammenfassung sollte zehn Seiten nicht überschreiten."],
+["この用語の定義を用語集で明確にしましょう","Let's clarify the definition of this term in the glossary.","我们在术语表中明确这个术语的定义。","이 용어의 정의를 용어집에서 명확히 합시다.","Aclaremos la definición de este término en el glosario.","Clarifions la définition de ce terme dans le glossaire.","Klären wir die Definition dieses Begriffs im Glossar."],
+["最終版には3部門の承認が必要です","The final version requires sign-off from three departments.","最终版需要三个部门的批准。","최종본은 3개 부서의 승인이 필요합니다.","La versión final requiere la aprobación de tres departamentos.","La version finale nécessite la validation de trois services.","Die Endversion erfordert die Freigabe von drei Abteilungen."],
+["変更履歴を残して修正してください","Please track your changes in the document.","请在文档中保留修订记录。","문서에 변경 내용을 추적해 주세요.","Active el control de cambios en el documento.","Veuillez activer le suivi des modifications dans le document.","Bitte verwenden Sie die Änderungsverfolgung im Dokument."],
+["英訳はネイティブチェックが必要です","The English translation needs a native check.","英文翻译需要母语者审校。","영문 번역은 원어민 검수가 필요합니다.","La traducción al inglés necesita revisión de un nativo.","La traduction anglaise nécessite une relecture par un natif.","Die englische Übersetzung braucht ein Lektorat durch einen Muttersprachler."]]);
 
-d(8,[["A serious adverse event was reported at site five.","施設5で重篤な有害事象が報告されました"],
-["The event was assessed as unrelated to the study drug.","この事象は治験薬と関連なしと評価されました"],
-["We must report this case to the authorities within fifteen days.","この症例は15日以内に当局へ報告が必要です"],
-["The most common adverse events were headache and nausea.","最も多い有害事象は頭痛と悪心でした"],
-["No new safety signals were identified.","新たな安全性シグナルは認められませんでした"],
-["The safety profile was consistent with previous studies.","安全性プロファイルは過去の試験と一貫していました"],
-["The patient recovered without any treatment.","患者は無処置で回復しました"],
-["The investigator considered the event to be mild.","治験責任医師はこの事象を軽度と判断しました"],
-["We updated the investigator's brochure with new safety information.","新しい安全性情報でIBを改訂しました"],
-["The risk-benefit balance remains positive.","リスク・ベネフィットバランスは引き続き良好です"],
-["Please follow up on the outcome of this case.","この症例の転帰をフォローしてください"],
-["The data safety monitoring board recommended continuing the study.","データ安全性モニタリング委員会は試験継続を推奨しました"]]);
+d(8,[
+["施設5で重篤な有害事象が報告されました","A serious adverse event was reported at site five.","五号中心报告了一例严重不良事件。","5번 기관에서 중대한 이상반응이 보고되었습니다.","Se notificó un acontecimiento adverso grave en el centro cinco.","Un événement indésirable grave a été rapporté au site cinq.","Am Zentrum fünf wurde ein schwerwiegendes unerwünschtes Ereignis gemeldet."],
+["この事象は治験薬と関連なしと評価されました","The event was assessed as unrelated to the study drug.","该事件被评估为与试验药物无关。","이 사건은 시험약과 관련 없음으로 평가되었습니다.","El evento se evaluó como no relacionado con el fármaco del estudio.","L'événement a été jugé sans lien avec le médicament à l'étude.","Das Ereignis wurde als nicht arzneimittelbedingt bewertet."],
+["この症例は15日以内に当局へ報告が必要です","We must report this case to the authorities within fifteen days.","我们必须在十五天内向监管机构报告该病例。","이 사례는 15일 이내에 당국에 보고해야 합니다.","Debemos notificar este caso a las autoridades en quince días.","Nous devons déclarer ce cas aux autorités sous quinze jours.","Wir müssen diesen Fall innerhalb von fünfzehn Tagen den Behörden melden."],
+["最も多い有害事象は頭痛と悪心でした","The most common adverse events were headache and nausea.","最常见的不良事件是头痛和恶心。","가장 흔한 이상반응은 두통과 구역이었습니다.","Los acontecimientos adversos más frecuentes fueron cefalea y náuseas.","Les événements indésirables les plus fréquents étaient céphalées et nausées.","Die häufigsten Nebenwirkungen waren Kopfschmerzen und Übelkeit."],
+["新たな安全性シグナルは認められませんでした","No new safety signals were identified.","未发现新的安全性信号。","새로운 안전성 신호는 확인되지 않았습니다.","No se identificaron nuevas señales de seguridad.","Aucun nouveau signal de sécurité n'a été identifié.","Es wurden keine neuen Sicherheitssignale festgestellt."],
+["安全性プロファイルは過去の試験と一貫していました","The safety profile was consistent with previous studies.","安全性特征与既往研究一致。","안전성 프로파일은 이전 시험들과 일관되었습니다.","El perfil de seguridad fue consistente con estudios previos.","Le profil de sécurité était cohérent avec les études antérieures.","Das Sicherheitsprofil entsprach früheren Studien."],
+["患者は無処置で回復しました","The patient recovered without any treatment.","患者未经治疗即康复。","환자는 치료 없이 회복했습니다.","El paciente se recuperó sin tratamiento.","Le patient s'est rétabli sans traitement.","Der Patient erholte sich ohne Behandlung."],
+["治験責任医師はこの事象を軽度と判断しました","The investigator considered the event to be mild.","研究者认为该事件为轻度。","시험책임자는 이 사건을 경증으로 판단했습니다.","El investigador consideró que el evento era leve.","L'investigateur a considéré l'événement comme léger.","Der Prüfarzt stufte das Ereignis als leicht ein."],
+["新しい安全性情報でIBを改訂しました","We updated the investigator's brochure with new safety information.","我们用新的安全性信息更新了研究者手册。","새로운 안전성 정보로 IB를 개정했습니다.","Actualizamos el manual del investigador con nueva información de seguridad.","Nous avons mis à jour la brochure investigateur avec de nouvelles données de sécurité.","Wir haben die Prüferinformation mit neuen Sicherheitsdaten aktualisiert."],
+["リスク・ベネフィットバランスは引き続き良好です","The risk-benefit balance remains positive.","风险获益平衡仍然良好。","위험-이익 균형은 여전히 긍정적입니다.","El balance riesgo-beneficio sigue siendo positivo.","Le rapport bénéfice-risque reste favorable.","Das Nutzen-Risiko-Verhältnis bleibt positiv."],
+["この症例の転帰をフォローしてください","Please follow up on the outcome of this case.","请跟进该病例的转归。","이 사례의 경과를 추적해 주세요.","Haga seguimiento del desenlace de este caso.","Veuillez suivre l'évolution de ce cas.","Bitte verfolgen Sie den Ausgang dieses Falls."],
+["データ安全性モニタリング委員会は試験継続を推奨しました","The data safety monitoring board recommended continuing the study.","数据安全监查委员会建议继续研究。","자료안전성모니터링위원회는 시험 지속을 권고했습니다.","El comité de monitorización de seguridad recomendó continuar el estudio.","Le comité de surveillance a recommandé de poursuivre l'étude.","Das Datensicherheitskomitee empfahl die Fortsetzung der Studie."]]);
 
-d(9,[["Today, I'd like to talk about our development strategy.","本日は開発戦略についてお話しします"],
-["Please take a look at this slide.","このスライドをご覧ください"],
-["As you can see from this graph, sales are increasing.","このグラフの通り、売上は増加しています"],
-["Let me move on to the next topic.","次のトピックに移ります"],
-["This is the key message of my presentation.","これが本日のキーメッセージです"],
-["I'll explain the details later in the appendix.","詳細は後ほど付録で説明します"],
-["To summarize, we have three main findings.","まとめると、主要な知見は3つです"],
-["That's all from me. Thank you for listening.","以上です。ご清聴ありがとうございました"],
-["I'm happy to take any questions now.","ご質問をお受けします"],
-["That's a good question. Let me think for a moment.","良い質問ですね。少し考えさせてください"],
-["I'm afraid I don't have the data with me today.","あいにく本日そのデータは手元にありません"],
-["I'll get back to you on that point after the meeting.","その点は会議後に回答します"]]);
+d(9,[
+["本日は開発戦略についてお話しします","Today, I'd like to talk about our development strategy.","今天我想谈谈我们的开发战略。","오늘은 저희 개발 전략에 대해 말씀드리겠습니다.","Hoy quisiera hablar de nuestra estrategia de desarrollo.","Aujourd'hui, j'aimerais parler de notre stratégie de développement.","Heute möchte ich über unsere Entwicklungsstrategie sprechen."],
+["このスライドをご覧ください","Please take a look at this slide.","请看这张幻灯片。","이 슬라이드를 봐 주세요.","Miren esta diapositiva, por favor.","Veuillez regarder cette diapositive.","Bitte schauen Sie sich diese Folie an."],
+["このグラフの通り、売上は増加しています","As you can see from this graph, sales are increasing.","从这张图可以看出,销售额在增长。","이 그래프에서 보시듯 매출이 증가하고 있습니다.","Como pueden ver en este gráfico, las ventas están aumentando.","Comme le montre ce graphique, les ventes augmentent.","Wie diese Grafik zeigt, steigen die Umsätze."],
+["次のトピックに移ります","Let me move on to the next topic.","让我们进入下一个话题。","다음 주제로 넘어가겠습니다.","Pasemos al siguiente tema.","Passons au sujet suivant.","Kommen wir zum nächsten Thema."],
+["これが本日のキーメッセージです","This is the key message of my presentation.","这是我演讲的核心信息。","이것이 오늘 발표의 핵심 메시지입니다.","Este es el mensaje clave de mi presentación.","Voici le message clé de ma présentation.","Das ist die Kernbotschaft meiner Präsentation."],
+["詳細は後ほど付録で説明します","I'll explain the details later in the appendix.","详细内容我稍后在附录中说明。","자세한 내용은 부록에서 설명하겠습니다.","Explicaré los detalles más adelante en el apéndice.","J'expliquerai les détails plus tard en annexe.","Die Einzelheiten erläutere ich später im Anhang."],
+["まとめると、主要な知見は3つです","To summarize, we have three main findings.","总结一下,我们有三个主要发现。","요약하면 주요 결과는 세 가지입니다.","En resumen, tenemos tres hallazgos principales.","En résumé, nous avons trois résultats principaux.","Zusammenfassend haben wir drei Hauptergebnisse."],
+["以上です。ご清聴ありがとうございました","That's all from me. Thank you for listening.","我的部分到此结束,感谢聆听。","이상입니다. 경청해 주셔서 감사합니다.","Eso es todo por mi parte. Gracias por su atención.","C'est tout pour moi. Merci de votre attention.","Das war's von mir. Danke fürs Zuhören."],
+["ご質問をお受けします","I'm happy to take any questions now.","现在我很乐意回答问题。","이제 질문을 받겠습니다.","Con gusto responderé sus preguntas ahora.","Je suis prêt à répondre à vos questions.","Ich beantworte jetzt gerne Ihre Fragen."],
+["良い質問ですね。少し考えさせてください","That's a good question. Let me think for a moment.","这是个好问题,让我想一下。","좋은 질문입니다. 잠시 생각해 보겠습니다.","Buena pregunta. Déjeme pensar un momento.","Bonne question. Laissez-moi réfléchir un instant.","Gute Frage. Lassen Sie mich kurz nachdenken."],
+["あいにく本日そのデータは手元にありません","I'm afraid I don't have the data with me today.","恐怕我今天没有带那些数据。","죄송하지만 오늘 그 데이터는 가지고 있지 않습니다.","Me temo que hoy no tengo esos datos conmigo.","Je crains de ne pas avoir ces données avec moi aujourd'hui.","Leider habe ich die Daten heute nicht dabei."],
+["その点は会議後に回答します","I'll get back to you on that point after the meeting.","会后我会就这一点回复您。","그 부분은 회의 후에 답변드리겠습니다.","Le responderé sobre ese punto después de la reunión.","Je reviendrai vers vous sur ce point après la réunion.","Ich melde mich nach der Besprechung dazu bei Ihnen."]]);
 
-d(10,[["Could you do me a favor?","お願いがあるのですが"],
-["Would it be possible to extend the deadline?","締切を延ばすことは可能でしょうか"],
-["I understand your concern, but we have a budget limitation.","懸念は理解しますが、予算に制約があります"],
-["Let me check with my team and get back to you.","チームに確認して折り返します"],
-["We can accept this condition if you shorten the timeline.","スケジュールを短縮いただければこの条件を受け入れられます"],
-["Could you give us a discount for a long-term contract?","長期契約で割引をいただけますか"],
-["I'm afraid we cannot agree to that proposal.","恐れ入りますがその提案には同意できません"],
-["Let's find a solution that works for both of us.","双方にとって良い解決策を探しましょう"],
-["Can I count on your support for this task?","このタスク、頼りにしていいですか"],
-["We appreciate your flexibility on this matter.","この件での柔軟なご対応に感謝します"],
-["Please prioritize this task over the others.","このタスクを他より優先してください"],
-["I owe you one.","ひとつ借りができましたね"]]);
+d(10,[
+["お願いがあるのですが","Could you do me a favor?","能帮我个忙吗?","부탁 하나 드려도 될까요?","¿Podría hacerme un favor?","Pourriez-vous me rendre un service ?","Könnten Sie mir einen Gefallen tun?"],
+["締切を延ばすことは可能でしょうか","Would it be possible to extend the deadline?","有可能延长截止日期吗?","마감일을 연장할 수 있을까요?","¿Sería posible ampliar el plazo?","Serait-il possible de repousser l'échéance ?","Wäre es möglich, die Frist zu verlängern?"],
+["懸念は理解しますが、予算に制約があります","I understand your concern, but we have a budget limitation.","我理解您的顾虑,但我们有预算限制。","우려는 이해하지만 예산에 제약이 있습니다.","Entiendo su preocupación, pero tenemos una limitación de presupuesto.","Je comprends votre préoccupation, mais nous avons une contrainte budgétaire.","Ich verstehe Ihre Bedenken, aber unser Budget ist begrenzt."],
+["チームに確認して折り返します","Let me check with my team and get back to you.","让我和团队确认后再回复您。","팀과 확인 후 다시 연락드리겠습니다.","Déjeme consultarlo con mi equipo y le respondo.","Laissez-moi vérifier avec mon équipe et je reviens vers vous.","Ich kläre das mit meinem Team und melde mich."],
+["スケジュールを短縮いただければこの条件を受け入れられます","We can accept this condition if you shorten the timeline.","如果你们缩短时间表,我们可以接受这个条件。","일정을 단축해 주신다면 이 조건을 수용할 수 있습니다.","Podemos aceptar esta condición si acortan el calendario.","Nous pouvons accepter cette condition si vous raccourcissez le calendrier.","Wir können diese Bedingung akzeptieren, wenn Sie den Zeitplan verkürzen."],
+["長期契約で割引をいただけますか","Could you give us a discount for a long-term contract?","长期合同能给我们折扣吗?","장기 계약에 대해 할인해 주실 수 있나요?","¿Podrían darnos un descuento por un contrato a largo plazo?","Pourriez-vous nous accorder une remise pour un contrat à long terme ?","Könnten Sie uns bei einem langfristigen Vertrag einen Rabatt geben?"],
+["恐れ入りますがその提案には同意できません","I'm afraid we cannot agree to that proposal.","恐怕我们无法同意该提案。","죄송하지만 그 제안에는 동의할 수 없습니다.","Me temo que no podemos aceptar esa propuesta.","Je crains que nous ne puissions accepter cette proposition.","Ich fürchte, wir können diesem Vorschlag nicht zustimmen."],
+["双方にとって良い解決策を探しましょう","Let's find a solution that works for both of us.","让我们找到对双方都可行的方案。","양측 모두에게 좋은 해결책을 찾아봅시다.","Busquemos una solución que funcione para ambos.","Trouvons une solution qui convienne aux deux parties.","Finden wir eine Lösung, die für beide Seiten passt."],
+["このタスク、頼りにしていいですか","Can I count on your support for this task?","这项任务我能指望您的支持吗?","이 업무에 대해 도움을 기대해도 될까요?","¿Puedo contar con su apoyo para esta tarea?","Puis-je compter sur votre soutien pour cette tâche ?","Kann ich bei dieser Aufgabe auf Ihre Unterstützung zählen?"],
+["この件での柔軟なご対応に感謝します","We appreciate your flexibility on this matter.","感谢您在此事上的灵活处理。","이 건에 대한 유연한 대응에 감사드립니다.","Agradecemos su flexibilidad en este asunto.","Nous vous remercions de votre flexibilité sur ce point.","Wir schätzen Ihre Flexibilität in dieser Angelegenheit."],
+["このタスクを他より優先してください","Please prioritize this task over the others.","请优先处理这项任务。","이 업무를 다른 것보다 우선해 주세요.","Priorice esta tarea sobre las demás.","Veuillez donner la priorité à cette tâche.","Bitte priorisieren Sie diese Aufgabe."],
+["ひとつ借りができましたね","I owe you one.","我欠你一个人情。","신세 한 번 졌네요.","Te debo una.","Je te revaudrai ça.","Ich schulde dir was."]]);
 
-d(11,[["The project is on track.","プロジェクトは順調です"],
-["We are two weeks behind schedule.","予定より2週間遅れています"],
-["What is the current status of the deliverable?","成果物の現在の状況はどうですか"],
-["The deadline has been moved up to next Friday.","締切が来週金曜に前倒しになりました"],
-["We need more resources to meet the deadline.","締切を守るにはリソースの追加が必要です"],
-["Let's identify the bottleneck in this process.","このプロセスのボトルネックを特定しましょう"],
-["I'll update the schedule and share it with everyone.","スケジュールを更新して全員に共有します"],
-["This task depends on the outcome of the review.","このタスクはレビュー結果に依存します"],
-["Who is responsible for this action item?","このアクションアイテムの担当は誰ですか"],
-["Let's set a realistic target date.","現実的な目標日を設定しましょう"],
-["The risk should be escalated to management.","このリスクは経営層にエスカレーションすべきです"],
-["We completed the milestone ahead of schedule.","マイルストーンを前倒しで完了しました"]]);
+d(11,[
+["プロジェクトは順調です","The project is on track.","项目进展顺利。","프로젝트는 순조롭게 진행 중입니다.","El proyecto va según lo previsto.","Le projet est sur la bonne voie.","Das Projekt liegt im Plan."],
+["予定より2週間遅れています","We are two weeks behind schedule.","我们比计划晚了两周。","일정보다 2주 지연되고 있습니다.","Llevamos dos semanas de retraso.","Nous avons deux semaines de retard.","Wir liegen zwei Wochen hinter dem Zeitplan."],
+["成果物の現在の状況はどうですか","What is the current status of the deliverable?","交付物目前的状态如何?","산출물의 현재 상태는 어떤가요?","¿Cuál es el estado actual del entregable?","Quel est l'état actuel du livrable ?","Wie ist der aktuelle Stand des Liefergegenstands?"],
+["締切が来週金曜に前倒しになりました","The deadline has been moved up to next Friday.","截止日期提前到了下周五。","마감일이 다음 주 금요일로 앞당겨졌습니다.","La fecha límite se adelantó al próximo viernes.","L'échéance a été avancée à vendredi prochain.","Die Frist wurde auf nächsten Freitag vorgezogen."],
+["締切を守るにはリソースの追加が必要です","We need more resources to meet the deadline.","为按期完成我们需要更多资源。","마감을 지키려면 더 많은 리소스가 필요합니다.","Necesitamos más recursos para cumplir el plazo.","Nous avons besoin de plus de ressources pour tenir le délai.","Wir brauchen mehr Ressourcen, um die Frist einzuhalten."],
+["このプロセスのボトルネックを特定しましょう","Let's identify the bottleneck in this process.","我们找出这个流程的瓶颈。","이 프로세스의 병목을 파악합시다.","Identifiquemos el cuello de botella en este proceso.","Identifions le goulot d'étranglement de ce processus.","Finden wir den Engpass in diesem Prozess."],
+["スケジュールを更新して全員に共有します","I'll update the schedule and share it with everyone.","我会更新日程并分享给大家。","일정을 업데이트해서 모두에게 공유하겠습니다.","Actualizaré el cronograma y lo compartiré con todos.","Je mettrai à jour le planning et le partagerai avec tous.","Ich aktualisiere den Zeitplan und teile ihn mit allen."],
+["このタスクはレビュー結果に依存します","This task depends on the outcome of the review.","这项任务取决于评审结果。","이 업무는 검토 결과에 달려 있습니다.","Esta tarea depende del resultado de la revisión.","Cette tâche dépend du résultat de la revue.","Diese Aufgabe hängt vom Ergebnis der Prüfung ab."],
+["このアクションアイテムの担当は誰ですか","Who is responsible for this action item?","这个行动事项由谁负责?","이 액션 아이템의 담당자는 누구인가요?","¿Quién es responsable de esta tarea?","Qui est responsable de cette action ?","Wer ist für diesen Punkt verantwortlich?"],
+["現実的な目標日を設定しましょう","Let's set a realistic target date.","我们设定一个现实的目标日期。","현실적인 목표일을 정합시다.","Fijemos una fecha objetivo realista.","Fixons une date cible réaliste.","Setzen wir ein realistisches Zieldatum."],
+["このリスクは経営層にエスカレーションすべきです","The risk should be escalated to management.","该风险应上报管理层。","이 리스크는 경영진에 보고해야 합니다.","El riesgo debe escalarse a la dirección.","Le risque doit être remonté à la direction.","Das Risiko sollte an das Management eskaliert werden."],
+["マイルストーンを前倒しで完了しました","We completed the milestone ahead of schedule.","我们提前完成了里程碑。","마일스톤을 예정보다 앞서 완료했습니다.","Completamos el hito antes de lo previsto.","Nous avons atteint le jalon en avance.","Wir haben den Meilenstein vorzeitig erreicht."]]);
 
-d(12,[["This app tracks daily habits and syncs data via Google Sheets.","このアプリは毎日の習慣を記録し、Googleスプレッドシートで同期します"],
-["I built a single-file web app that works offline on iPhone.","iPhoneでオフライン動作する単一ファイルのWebアプリを作りました"],
-["This tool replaces our Excel-based Gantt chart at work.","このツールは職場のExcelガントチャートを置き換えるものです"],
-["The app saves data locally, so no account is required.","データはローカル保存なのでアカウント不要です"],
-["My family uses this app to log height and weight over time.","家族がこのアプリで身長と体重を記録しています"],
-["This flashcard app supports multiple users on one device.","この単語帳アプリは1台で複数ユーザーに対応します"],
-["I added a dark mode toggle to all of my apps.","すべての自作アプリにダークモード切替を付けました"],
-["The timer keeps running even when the screen is locked.","画面ロック中もタイマーは動き続けます"],
-["You can export the data as an Excel or CSV file.","データはExcelやCSVで書き出せます"],
-["I deploy my apps to GitHub Pages, so they are free to host.","アプリはGitHub Pagesに置いているのでホスティングは無料です"]]);
+d(12,[
+["チェックインをお願いします","I'd like to check in, please.","我要办理入住。","체크인 부탁합니다.","Quisiera hacer el check-in, por favor.","Je voudrais m'enregistrer, s'il vous plaît.","Ich möchte bitte einchecken."],
+["タクシーで空港までどのくらいかかりますか","How long does it take to the airport by taxi?","打车到机场要多久?","택시로 공항까지 얼마나 걸리나요?","¿Cuánto se tarda al aeropuerto en taxi?","Combien de temps faut-il pour aller à l'aéroport en taxi ?","Wie lange dauert es mit dem Taxi zum Flughafen?"],
+["この住所までお願いします","Could you take me to this address?","请带我去这个地址。","이 주소로 가 주세요.","¿Puede llevarme a esta dirección?","Pouvez-vous m'emmener à cette adresse ?","Können Sie mich zu dieser Adresse bringen?"],
+["搭乗ゲートはどこですか","Where is the boarding gate?","登机口在哪里?","탑승구는 어디인가요?","¿Dónde está la puerta de embarque?","Où se trouve la porte d'embarquement ?","Wo ist das Abfluggate?"],
+["便が遅延しています","My flight has been delayed.","我的航班延误了。","제 항공편이 지연되었습니다.","Mi vuelo se ha retrasado.","Mon vol a été retardé.","Mein Flug hat Verspätung."],
+["荷物が出てきません","My luggage hasn't come out.","我的行李没有出来。","짐이 나오지 않았습니다.","Mi equipaje no ha salido.","Mes bagages ne sont pas arrivés.","Mein Gepäck ist nicht angekommen."],
+["領収書をいただけますか","Could I have a receipt, please?","能给我一张收据吗?","영수증 주시겠어요?","¿Me da un recibo, por favor?","Puis-je avoir un reçu, s'il vous plaît ?","Könnte ich bitte eine Quittung bekommen?"],
+["チェックアウトは何時ですか","What time is checkout?","退房时间是几点?","체크아웃은 몇 시인가요?","¿A qué hora es el check-out?","À quelle heure est le départ ?","Um wie viel Uhr ist der Check-out?"],
+["Wi-Fiのパスワードを教えてください","Could you tell me the Wi-Fi password?","请告诉我Wi-Fi密码。","와이파이 비밀번호를 알려 주세요.","¿Me puede decir la contraseña del wifi?","Pouvez-vous me donner le mot de passe du Wi-Fi ?","Können Sie mir das WLAN-Passwort sagen?"],
+["もう一泊延長できますか","Can I extend my stay by one night?","我可以多住一晚吗?","하루 더 연장할 수 있나요?","¿Puedo extender mi estancia una noche más?","Puis-je prolonger mon séjour d'une nuit ?","Kann ich meinen Aufenthalt um eine Nacht verlängern?"],
+["会場までの道を教えてください","Could you tell me the way to the venue?","请告诉我去会场的路。","행사장까지 가는 길을 알려 주세요.","¿Me puede indicar cómo llegar al lugar del evento?","Pouvez-vous m'indiquer le chemin jusqu'au lieu de l'événement ?","Können Sie mir den Weg zum Veranstaltungsort zeigen?"],
+["両替はどこでできますか","Where can I exchange money?","在哪里可以换钱?","환전은 어디서 할 수 있나요?","¿Dónde puedo cambiar dinero?","Où puis-je changer de l'argent ?","Wo kann ich Geld wechseln?"]]);
+
+d(13,[
+["2名で予約したいのですが","I'd like to make a reservation for two.","我想预订两个人的位子。","두 명 예약하고 싶습니다.","Quisiera reservar para dos personas.","Je voudrais réserver pour deux personnes.","Ich möchte für zwei Personen reservieren."],
+["おすすめは何ですか","What do you recommend?","有什么推荐的吗?","추천 메뉴가 뭔가요?","¿Qué me recomienda?","Que me recommandez-vous ?","Was empfehlen Sie?"],
+["食物アレルギーがあります","I have a food allergy.","我有食物过敏。","음식 알레르기가 있습니다.","Tengo alergia alimentaria.","J'ai une allergie alimentaire.","Ich habe eine Lebensmittelallergie."],
+["乾杯しましょう","Let's make a toast.","我们干杯吧。","건배합시다.","Hagamos un brindis.","Portons un toast.","Stoßen wir an."],
+["お口に合いますか","How do you like the food?","饭菜合您口味吗?","음식이 입에 맞으시나요?","¿Le gusta la comida?","La cuisine vous plaît ?","Schmeckt Ihnen das Essen?"],
+["これは日本の郷土料理です","This is a local Japanese dish.","这是日本的地方菜。","이것은 일본 향토 요리입니다.","Este es un plato regional japonés.","C'est un plat régional japonais.","Das ist ein japanisches Regionalgericht."],
+["お会計をお願いします","Could we have the check, please?","请结账。","계산서 부탁합니다.","La cuenta, por favor.","L'addition, s'il vous plaît.","Die Rechnung, bitte."],
+["ここは私がごちそうします","This is on me.","这顿我请客。","여기는 제가 내겠습니다.","Invito yo.","C'est moi qui offre.","Das geht auf mich."],
+["お水をいただけますか","Could I have some water, please?","请给我一杯水。","물 좀 주시겠어요?","¿Me trae agua, por favor?","Puis-je avoir de l'eau, s'il vous plaît ?","Könnte ich bitte Wasser haben?"],
+["取り分けましょうか","Shall I serve you some?","我帮您分一些吧?","덜어 드릴까요?","¿Le sirvo un poco?","Je vous en sers un peu ?","Soll ich Ihnen etwas auftun?"],
+["今夜は楽しかったです","I had a great time tonight.","今晚很愉快。","오늘 밤 즐거웠습니다.","Lo pasé muy bien esta noche.","J'ai passé une excellente soirée.","Der Abend hat mir sehr gefallen."],
+["また一緒に食事しましょう","Let's have dinner together again.","下次再一起吃饭吧。","다음에 또 같이 식사해요.","Cenemos juntos otra vez.","Dînons ensemble à nouveau.","Lassen Sie uns wieder zusammen essen gehen."]]);
+
+d(14,[
+["来週のご都合はいかがですか","How is your availability next week?","您下周方便吗?","다음 주 일정은 어떠신가요?","¿Cómo está su disponibilidad la próxima semana?","Quelles sont vos disponibilités la semaine prochaine ?","Wie sieht es bei Ihnen nächste Woche aus?"],
+["火曜の午後は空いています","I'm available on Tuesday afternoon.","我周二下午有空。","화요일 오후는 비어 있습니다.","Estoy libre el martes por la tarde.","Je suis disponible mardi après-midi.","Am Dienstagnachmittag habe ich Zeit."],
+["その日は先約があります","I have a prior commitment that day.","那天我已有安排。","그날은 선약이 있습니다.","Ese día tengo un compromiso previo.","J'ai déjà un engagement ce jour-là.","An dem Tag habe ich schon einen Termin."],
+["会議を1時間後ろ倒しできますか","Could we push the meeting back by an hour?","会议能推迟一小时吗?","회의를 한 시간 늦출 수 있을까요?","¿Podríamos retrasar la reunión una hora?","Pourrions-nous décaler la réunion d'une heure ?","Könnten wir die Besprechung um eine Stunde verschieben?"],
+["日程を再調整させてください","Let me reschedule the meeting.","让我重新安排日程。","일정을 다시 잡겠습니다.","Permítame reprogramar la reunión.","Laissez-moi reprogrammer la réunion.","Lassen Sie mich den Termin neu ansetzen."],
+["時差を考慮する必要があります","We need to consider the time difference.","我们需要考虑时差。","시차를 고려해야 합니다.","Debemos tener en cuenta la diferencia horaria.","Nous devons tenir compte du décalage horaire.","Wir müssen die Zeitverschiebung berücksichtigen."],
+["日本時間の朝9時でいかがですか","How about 9 a.m. Japan time?","日本时间早上9点怎么样?","일본 시간 오전 9시는 어떠세요?","¿Qué tal a las 9 de la mañana, hora de Japón?","Que diriez-vous de 9 h, heure du Japon ?","Wie wäre es mit 9 Uhr japanischer Zeit?"],
+["30分だけお時間いただけますか","Could you spare thirty minutes?","能占用您30分钟吗?","30분만 시간 내 주실 수 있나요?","¿Podría dedicarme treinta minutos?","Pourriez-vous m'accorder trente minutes ?","Hätten Sie dreißig Minuten Zeit?"],
+["カレンダー招待を送ります","I'll send you a calendar invite.","我会发送日历邀请。","캘린더 초대를 보내드리겠습니다.","Le enviaré una invitación de calendario.","Je vous envoie une invitation d'agenda.","Ich schicke Ihnen eine Kalendereinladung."],
+["直前の変更で申し訳ありません","Sorry for the last-minute change.","抱歉临时变更。","갑작스러운 변경 죄송합니다.","Disculpe el cambio de última hora.","Désolé pour ce changement de dernière minute.","Entschuldigen Sie die kurzfristige Änderung."],
+["その時間で確定しましょう","Let's confirm that time slot.","就定那个时间吧。","그 시간으로 확정합시다.","Confirmemos esa hora.","Confirmons ce créneau.","Bestätigen wir diesen Termin."],
+["リマインドを送っていただけますか","Could you send me a reminder?","能给我发个提醒吗?","리마인더를 보내 주시겠어요?","¿Podría enviarme un recordatorio?","Pourriez-vous m'envoyer un rappel ?","Könnten Sie mir eine Erinnerung schicken?"]]);
+
+d(15,[
+["このアプリは毎日の習慣を記録し、Googleスプレッドシートで同期します","This app tracks daily habits and syncs data via Google Sheets.","这个应用记录日常习惯,并通过谷歌表格同步数据。","이 앱은 매일의 습관을 기록하고 구글 시트로 동기화합니다.","Esta aplicación registra hábitos diarios y sincroniza los datos con Google Sheets.","Cette application suit les habitudes quotidiennes et synchronise les données via Google Sheets.","Diese App erfasst tägliche Gewohnheiten und synchronisiert die Daten über Google Sheets."],
+["iPhoneでオフライン動作する単一ファイルのWebアプリを作りました","I built a single-file web app that works offline on iPhone.","我做了一个能在iPhone上离线运行的单文件网页应用。","아이폰에서 오프라인으로 작동하는 단일 파일 웹 앱을 만들었습니다.","Creé una aplicación web de un solo archivo que funciona sin conexión en el iPhone.","J'ai créé une application web en un seul fichier qui fonctionne hors ligne sur iPhone.","Ich habe eine Ein-Datei-Web-App gebaut, die auf dem iPhone offline funktioniert."],
+["このツールは職場のExcelガントチャートを置き換えるものです","This tool replaces our Excel-based Gantt chart at work.","这个工具取代了我们公司基于Excel的甘特图。","이 도구는 회사의 엑셀 기반 간트 차트를 대체합니다.","Esta herramienta reemplaza nuestro diagrama de Gantt en Excel del trabajo.","Cet outil remplace notre diagramme de Gantt sous Excel au travail.","Dieses Tool ersetzt unser Excel-basiertes Gantt-Diagramm bei der Arbeit."],
+["データはローカル保存なのでアカウント不要です","The app saves data locally, so no account is required.","应用将数据保存在本地,无需账户。","이 앱은 데이터를 로컬에 저장하므로 계정이 필요 없습니다.","La aplicación guarda los datos localmente, así que no requiere cuenta.","L'application enregistre les données localement, donc aucun compte n'est requis.","Die App speichert Daten lokal, daher ist kein Konto nötig."],
+["家族がこのアプリで身長と体重を記録しています","My family uses this app to log height and weight over time.","我的家人用这个应用长期记录身高和体重。","우리 가족은 이 앱으로 키와 몸무게를 기록합니다.","Mi familia usa esta aplicación para registrar la altura y el peso a lo largo del tiempo.","Ma famille utilise cette application pour suivre la taille et le poids au fil du temps.","Meine Familie nutzt diese App, um Größe und Gewicht zu erfassen."],
+["この単語帳アプリは1台で複数ユーザーに対応します","This flashcard app supports multiple users on one device.","这个单词卡应用支持一台设备多个用户。","이 플래시카드 앱은 한 기기에서 여러 사용자를 지원합니다.","Esta aplicación de tarjetas admite varios usuarios en un dispositivo.","Cette application de cartes mémoire prend en charge plusieurs utilisateurs sur un appareil.","Diese Karteikarten-App unterstützt mehrere Nutzer auf einem Gerät."],
+["すべての自作アプリにダークモード切替を付けました","I added a dark mode toggle to all of my apps.","我给所有应用都加了深色模式开关。","제 모든 앱에 다크 모드 전환을 추가했습니다.","Añadí un interruptor de modo oscuro a todas mis aplicaciones.","J'ai ajouté un mode sombre à toutes mes applications.","Ich habe allen meinen Apps einen Dunkelmodus hinzugefügt."],
+["画面ロック中もタイマーは動き続けます","The timer keeps running even when the screen is locked.","即使锁屏,计时器也会继续运行。","화면이 잠겨 있어도 타이머는 계속 작동합니다.","El temporizador sigue funcionando aunque la pantalla esté bloqueada.","Le minuteur continue de fonctionner même quand l'écran est verrouillé.","Der Timer läuft auch bei gesperrtem Bildschirm weiter."],
+["データはExcelやCSVで書き出せます","You can export the data as an Excel or CSV file.","数据可以导出为Excel或CSV文件。","데이터를 엑셀이나 CSV 파일로 내보낼 수 있습니다.","Puede exportar los datos como archivo de Excel o CSV.","Vous pouvez exporter les données au format Excel ou CSV.","Sie können die Daten als Excel- oder CSV-Datei exportieren."],
+["アプリはGitHub Pagesに置いているのでホスティングは無料です","I deploy my apps to GitHub Pages, so they are free to host.","我的应用部署在GitHub Pages上,托管是免费的。","제 앱은 깃허브 페이지에 배포해서 호스팅이 무료입니다.","Publico mis aplicaciones en GitHub Pages, así que el alojamiento es gratis.","Je déploie mes applications sur GitHub Pages, donc l'hébergement est gratuit.","Ich veröffentliche meine Apps auf GitHub Pages, das Hosting ist also kostenlos."]]);
 
 /* ================= STATE ================= */
 const LS_KEY = "perapera_v1";
@@ -510,18 +574,28 @@ let S = {
   edits:{},          // id -> {en,ja} overrides
   dates:{},          // "YYYY-MM-DD" -> set count
   newDate:"", newCnt:0,
-  cfg:{ dark:matchMedia("(prefers-color-scheme: dark)").matches, wake:true, rate:1.0,
+  cfg:{ dark:matchMedia("(prefers-color-scheme: dark)").matches, wake:true, rate:1.0, learnLang:"en-US",
         gasUrl:"", tzOn:false, tzUrl:"", tzHabit:"" }
 };
 try{ const raw = localStorage.getItem(LS_KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
 const save = () => localStorage.setItem(LS_KEY, JSON.stringify(S));
+const sh = l => l.split("-")[0];
+if(!S.cfg.learnLang) S.cfg.learnLang = "en-US";
+Object.keys(S.srs).forEach(k => { if(!String(k).includes("@")){ S.srs[k + "@en"] = S.srs[k]; delete S.srs[k]; } });
+Object.keys(S.edits).forEach(id => { const e = S.edits[id]; if(e && e.en !== undefined){ S.edits[id] = { ja: e.ja, ["t_" + sh(e.lang || "en-US")]: e.en }; } });
 
 function allPhrases(){
-  return P.concat(S.custom)
-    .filter(p => !S.archived.includes(p.id))
-    .map(p => S.edits[p.id] ? Object.assign({}, p, S.edits[p.id]) : p);
+  const L = S.cfg.learnLang || "en-US", k = sh(L);
+  const built = P.map(p => {
+    const e = S.edits[p.id] || {};
+    return { id:p.id, c:p.c, key:p.id + "@" + k, lang:L,
+      en: e["t_" + k] !== undefined ? e["t_" + k] : p.t[k],
+      ja: e.ja !== undefined ? e.ja : p.ja };
+  });
+  const cust = S.custom.filter(p => (p.lang || "en-US") === L)
+    .map(p => ({ id:p.id, c:p.c, key:p.id + "@" + k, lang:L, en:p.en, ja:p.ja }));
+  return built.concat(cust).filter(p => !S.archived.includes(p.id) && p.en);
 }
-function findPhrase(id){ return allPhrases().find(p => p.id === id); }
 
 /* ================= UTIL ================= */
 const $ = s => document.querySelector(s);
@@ -548,8 +622,8 @@ $$("nav button").forEach(b => b.onclick = () => {
 /* ================= SRS ================= */
 function dueList(){
   const t = today();
-  return allPhrases().filter(p => S.srs[p.id] && S.srs[p.id].due <= t)
-    .sort((a,b) => S.srs[a.id].due < S.srs[b.id].due ? -1 : 1);
+  return allPhrases().filter(p => S.srs[p.key] && S.srs[p.key].due <= t)
+    .sort((a,b) => S.srs[a.key].due < S.srs[b.key].due ? -1 : 1);
 }
 function pickPhrase(){
   const t = today();
@@ -558,28 +632,28 @@ function pickPhrase(){
   const doneToday = S.dates[t] || 0;
   // 日曜の初回はMy Apps優先
   if(isSun && doneToday === 0){
-    const my = allPhrases().filter(p => p.c === 12);
-    const myDue = my.filter(p => S.srs[p.id] && S.srs[p.id].due <= t);
+    const my = allPhrases().filter(p => p.c === MYAPPS);
+    const myDue = my.filter(p => S.srs[p.key] && S.srs[p.key].due <= t);
     if(myDue.length) return myDue[0];
-    const myNew = my.filter(p => !S.srs[p.id]);
+    const myNew = my.filter(p => !S.srs[p.key]);
     if(myNew.length) return myNew[0];
   }
   const due = dueList();
   if(due.length) return due[0];
   if(S.newCnt < 1){
-    const fresh = allPhrases().find(p => !S.srs[p.id] && p.c !== 12);
-    if(fresh){ return fresh; }
+    const fresh = allPhrases().find(p => !S.srs[p.key] && p.c !== MYAPPS);
+    if(fresh) return fresh;
   }
   // 先取り復習(最も期日が近いもの)
-  const seen = allPhrases().filter(p => S.srs[p.id])
-    .sort((a,b) => S.srs[a.id].due < S.srs[b.id].due ? -1 : 1);
+  const seen = allPhrases().filter(p => S.srs[p.key])
+    .sort((a,b) => S.srs[a.key].due < S.srs[b.key].due ? -1 : 1);
   if(seen.length) return seen[0];
   return allPhrases()[0];
 }
-function rate(id, r){
+function rate(key, r){
   const t = today();
-  let st = S.srs[id] || { reps:0, iv:0, ease:2.5, due:t, last:"" };
-  if(!S.srs[id] && S.newDate === t) S.newCnt++;
+  let st = S.srs[key] || { reps:0, iv:0, ease:2.5, due:t, last:"" };
+  if(!S.srs[key] && S.newDate === t) S.newCnt++;
   if(r === "again"){ st.reps = 0; st.iv = 0; st.due = t; }
   else {
     st.reps++;
@@ -590,24 +664,31 @@ function rate(id, r){
     st.due = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }
   st.last = t;
-  S.srs[id] = st;
+  S.srs[key] = st;
   save();
 }
 
 /* ================= TTS / RECOGNITION ================= */
 const synth = window.speechSynthesis;
-let voice = null;
-function pickVoice(){
-  const vs = synth.getVoices().filter(v => v.lang.startsWith("en"));
-  voice = vs.find(v => /Samantha|Google US English/i.test(v.name)) || vs.find(v => v.lang === "en-US") || vs[0] || null;
+const LANGS = [["en-US","英語"],["zh-CN","中国語"],["ko-KR","韓国語"],["es-ES","スペイン語"],["fr-FR","フランス語"],["de-DE","ドイツ語"]];
+const langName = l => (LANGS.find(x => x[0] === l) || ["","?"])[1];
+let voiceCache = {};
+function voiceFor(lang){
+  if(voiceCache[lang]) return voiceCache[lang];
+  const norm = v => v.lang.replace("_","-");
+  const vs = synth.getVoices();
+  const exact = vs.filter(v => norm(v) === lang);
+  const pre = vs.filter(v => norm(v).startsWith(lang.split("-")[0]));
+  const v = exact.find(v => /Samantha|Google/i.test(v.name)) || exact[0] || pre[0] || null;
+  if(v) voiceCache[lang] = v;
+  return v;
 }
-pickVoice();
-if(synth.onvoiceschanged !== undefined) synth.onvoiceschanged = pickVoice;
+if(synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => { voiceCache = {}; };
 
-function speakOnce(text, rateMul, onWord){
+function speakOnce(text, rateMul, onWord, lang){
   return new Promise(res => {
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US"; if(voice) u.voice = voice;
+    u.lang = lang; const v = voiceFor(lang); if(v) u.voice = v;
     u.rate = S.cfg.rate * rateMul;
     u.onboundary = e => { if(e.name === "word" || e.charIndex !== undefined) onWord && onWord(e.charIndex); };
     u.onend = res; u.onerror = res;
@@ -615,14 +696,14 @@ function speakOnce(text, rateMul, onWord){
   });
 }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-function recognizeOnce(ms){
+function recognizeOnce(ms, lang){
   return new Promise(res => {
     if(!SR){ res(null); return; }
     let done = false, out = "";
     const finish = v => { if(!done){ done = true; res(v); } };
     try{
       const r = new SR();
-      r.lang = "en-US"; r.interimResults = true; r.maxAlternatives = 1;
+      r.lang = lang; r.interimResults = true; r.maxAlternatives = 1;
       r.onresult = e => { out = [...e.results].map(x => x[0].transcript).join(" "); $("#recogText").textContent = "🎙 " + out; };
       r.onerror = () => finish(out || null);
       r.onend = () => finish(out || null);
@@ -641,17 +722,20 @@ function wakeOff(){ if(wl){ wl.release().catch(()=>{}); wl = null; } }
 let session = { token:0, phrase:null, rating:"good" };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+function tokens(en){ return en.includes(" ") ? { t: en.split(" "), sep: 1 } : { t: en.split(""), sep: 0 }; }
 function renderWords(en){
-  $("#phraseEn").innerHTML = en.split(" ").map((w,i) => `<span class="w" data-i="${i}">${esc(w)}</span>`).join(" ");
+  const { t, sep } = tokens(en);
+  $("#phraseEn").innerHTML = t.map((w,i) => `<span class="w" data-i="${i}">${esc(w)}</span>`).join(sep ? " " : "");
 }
 function highlightAt(charIdx, en){
-  let acc = 0; const words = en.split(" ");
-  for(let i = 0; i < words.length; i++){
-    if(charIdx < acc + words[i].length + 1){
+  const { t, sep } = tokens(en);
+  let acc = 0;
+  for(let i = 0; i < t.length; i++){
+    if(charIdx < acc + t[i].length + sep){
       $$(".phrase-en .w").forEach((el,j) => el.classList.toggle("hl", j <= i));
       return;
     }
-    acc += words[i].length + 1;
+    acc += t[i].length + sep;
   }
 }
 function setDots(n, sp){
@@ -679,7 +763,7 @@ async function runSet(){
     if(tk !== session.token) return;
     setDots(i, false);
     $$(".phrase-en .w").forEach(el => el.classList.remove("hl"));
-    await speakOnce(p.en, rates[i], ci => highlightAt(ci, p.en));
+    await speakOnce(p.en, rates[i], ci => highlightAt(ci, p.en), p.lang || "en-US");
     if(tk !== session.token) return;
     setDots(i + 1, false);
     await sleep(600);
@@ -701,8 +785,9 @@ async function runSet(){
       if(tk !== session.token) return;
     }
     orb.textContent = "🗣"; orb.classList.add("pulsing");
-    const dur = Math.max(3500, p.en.split(" ").length * 450);
-    if(SR){ await recognizeOnce(dur + 1500); } else { await sleep(dur); }
+    const tk2 = tokens(p.en);
+    const dur = Math.max(3500, tk2.t.length * (tk2.sep ? 450 : 180));
+    if(SR){ await recognizeOnce(dur + 1500, p.lang || "en-US"); } else { await sleep(dur); }
     if(tk !== session.token) return;
     setDots(i + 1, true);
     await sleep(400);
@@ -728,7 +813,7 @@ $$(".rate-row button").forEach(b => b.onclick = () => {
   session.rating = b.dataset.rate;
   $$(".rate-row button").forEach(x => x.classList.toggle("sel", x === b));
 });
-function commitRating(){ if(session.phrase){ rate(session.phrase.id, session.rating); session.phrase = null; } }
+function commitRating(){ if(session.phrase){ rate(session.phrase.key, session.rating); session.phrase = null; } }
 $("#contBtn").onclick = () => { commitRating(); runSet(); };
 $("#stopBtn").onclick = () => { commitRating(); $("#complete").style.display = "none"; $("#startCard").style.display = "block"; renderHome(); };
 $("#startBtn").onclick = () => {
@@ -776,23 +861,29 @@ $("#calNext").onclick = () => { calCur.setMonth(calCur.getMonth() + 1); renderSt
 
 /* ================= PHRASES EDITOR ================= */
 function renderPhrases(){
+  const L = S.cfg.learnLang || "en-US", k = sh(L);
+  const rows = P.map(p => { const e = S.edits[p.id] || {}; return { id:p.id, c:p.c, builtin:true, lang:L,
+      en: e["t_" + k] !== undefined ? e["t_" + k] : p.t[k],
+      ja: e.ja !== undefined ? e.ja : p.ja }; })
+    .concat(S.custom.map(p => ({ id:p.id, c:p.c, builtin:false, lang:p.lang || "en-US", en:p.en, ja:p.ja })));
   const list = $("#phraseList");
-  const all = P.concat(S.custom).map(p => S.edits[p.id] ? Object.assign({}, p, S.edits[p.id]) : p);
-  list.innerHTML = CATS.map((cat, ci) => {
-    const items = all.filter(p => p.c === ci);
+  list.innerHTML = `<div style="font-size:12px;color:var(--sub);padding:4px">学習言語: ${langName(L)}(せっていで変更)</div>` +
+    CATS.map((cat, ci) => {
+    const items = rows.filter(p => p.c === ci);
     if(!items.length) return "";
-    const rows = items.map(p => {
+    const inner = items.map(p => {
       const arch = S.archived.includes(p.id);
-      const st = S.srs[p.id];
+      const st = S.srs[p.id + "@" + sh(p.lang)];
+      const badge = (!p.builtin && p.lang !== L) ? `<span style="color:var(--speak);font-weight:700">${langName(p.lang)}　</span>` : "";
       return `<div class="p-item ${arch ? "archived" : ""}">
-        <div class="en">${esc(p.en)}</div><div class="ja">${esc(p.ja)}</div>
-        <div class="meta">${st ? `復習 ${st.reps}回 / 次回 ${st.due}` : "未学習"}</div>
+        <div class="en">${esc(p.en || "(未収録)")}</div><div class="ja">${esc(p.ja)}</div>
+        <div class="meta">${badge}${st ? `復習 ${st.reps}回 / 次回 ${st.due}` : "未学習"}</div>
         <div class="p-actions">
           <button onclick="editPhrase(${p.id})">編集</button>
           <button class="warn" onclick="toggleArchive(${p.id})">${arch ? "もどす" : "アーカイブ"}</button>
         </div></div>`;
     }).join("");
-    return `<details class="cat-block"><summary>${cat}<span class="cnt">${items.length}件</span></summary>${rows}</details>`;
+    return `<details class="cat-block"><summary>${cat}<span class="cnt">${items.length}件</span></summary>${inner}</details>`;
   }).join("");
 }
 window.toggleArchive = id => {
@@ -801,33 +892,52 @@ window.toggleArchive = id => {
   save(); renderPhrases();
 };
 window.editPhrase = id => {
-  const p = P.concat(S.custom).find(x => x.id === id);
-  const cur = S.edits[id] ? Object.assign({}, p, S.edits[id]) : p;
-  openModal(`<h3>フレーズ編集</h3>
-    <label class="f">英文</label><textarea class="text-input" id="mEn" rows="3">${esc(cur.en)}</textarea>
-    <label class="f">和訳</label><input class="text-input" id="mJa" value="${esc(cur.ja)}">
-    <button class="big-btn" style="margin-top:16px" onclick="saveEdit(${id})">保存</button>`);
+  const cust = S.custom.find(x => x.id === id);
+  const L = S.cfg.learnLang || "en-US", k = sh(L);
+  if(cust){
+    openModal(`<h3>フレーズ編集</h3>
+      <label class="f">言語</label>
+      <select class="text-input" id="mLang">${LANGS.map(([v,n]) => `<option value="${v}" ${v === (cust.lang || "en-US") ? "selected" : ""}>${n}</option>`).join("")}</select>
+      <label class="f">フレーズ</label><textarea class="text-input" id="mEn" rows="3">${esc(cust.en)}</textarea>
+      <label class="f">訳</label><input class="text-input" id="mJa" value="${esc(cust.ja)}">
+      <button class="big-btn" style="margin-top:16px" onclick="saveEdit(${id})">保存</button>`);
+  } else {
+    const p = P.find(x => x.id === id);
+    const e = S.edits[id] || {};
+    const en = e["t_" + k] !== undefined ? e["t_" + k] : p.t[k];
+    const ja = e.ja !== undefined ? e.ja : p.ja;
+    openModal(`<h3>フレーズ編集(${langName(L)})</h3>
+      <label class="f">フレーズ</label><textarea class="text-input" id="mEn" rows="3">${esc(en || "")}</textarea>
+      <label class="f">訳</label><input class="text-input" id="mJa" value="${esc(ja)}">
+      <button class="big-btn" style="margin-top:16px" onclick="saveEdit(${id})">保存</button>`);
+  }
 };
 window.saveEdit = id => {
   const en = $("#mEn").value.trim(), ja = $("#mJa").value.trim();
   if(!en) return;
-  if(S.custom.find(x => x.id === id)){ const c = S.custom.find(x => x.id === id); c.en = en; c.ja = ja; }
-  else S.edits[id] = { en, ja };
+  const cust = S.custom.find(x => x.id === id);
+  if(cust){ cust.en = en; cust.ja = ja; cust.lang = $("#mLang").value; }
+  else {
+    const k = sh(S.cfg.learnLang || "en-US");
+    S.edits[id] = Object.assign({}, S.edits[id], { ja, ["t_" + k]: en });
+  }
   save(); closeModal(); renderPhrases(); toast("保存しました");
 };
 $("#addPhraseBtn").onclick = () => {
   openModal(`<h3>フレーズ追加</h3>
     <label class="f">カテゴリ</label>
-    <select class="text-input" id="mCat">${CATS.map((c,i) => `<option value="${i}" ${i===12?"selected":""}>${c}</option>`).join("")}</select>
-    <label class="f">英文</label><textarea class="text-input" id="mEn" rows="3"></textarea>
-    <label class="f">和訳</label><input class="text-input" id="mJa">
+    <select class="text-input" id="mCat">${CATS.map((c,i) => `<option value="${i}" ${i === MYAPPS ? "selected" : ""}>${c}</option>`).join("")}</select>
+    <label class="f">言語</label>
+    <select class="text-input" id="mLang">${LANGS.map(([v,n]) => `<option value="${v}" ${v === S.cfg.learnLang ? "selected" : ""}>${n}</option>`).join("")}</select>
+    <label class="f">フレーズ</label><textarea class="text-input" id="mEn" rows="3"></textarea>
+    <label class="f">訳</label><input class="text-input" id="mJa">
     <button class="big-btn" style="margin-top:16px" onclick="addPhrase()">追加</button>`);
 };
 window.addPhrase = () => {
   const en = $("#mEn").value.trim(), ja = $("#mJa").value.trim();
   if(!en) return;
   const id = Math.max(1000, ...S.custom.map(x => x.id)) + 1;
-  S.custom.push({ id, c: +$("#mCat").value, en, ja });
+  S.custom.push({ id, c: +$("#mCat").value, en, ja, lang: $("#mLang").value });
   save(); closeModal(); renderPhrases(); toast("追加しました");
 };
 function openModal(html){ $("#modalSheet").innerHTML = `<button class="close-x" onclick="closeModal()">✕</button>` + html; $("#modal").classList.add("open"); }
@@ -839,6 +949,9 @@ $("#setWake").checked = S.cfg.wake;
 $("#setWake").onchange = e => { S.cfg.wake = e.target.checked; save(); };
 $("#setRate").value = String(S.cfg.rate.toFixed(1));
 $("#setRate").onchange = e => { S.cfg.rate = +e.target.value; save(); };
+$("#setLearnLang").innerHTML = LANGS.map(([v,n]) => `<option value="${v}">${n}</option>`).join("");
+$("#setLearnLang").value = S.cfg.learnLang || "en-US";
+$("#setLearnLang").onchange = e => { S.cfg.learnLang = e.target.value; save(); renderHome(); toast(langName(S.cfg.learnLang) + "に切替えました"); };
 $("#setGasUrl").value = S.cfg.gasUrl;
 $("#setGasUrl").onchange = e => { S.cfg.gasUrl = e.target.value.trim(); save(); };
 $("#setTzOn").checked = S.cfg.tzOn;
@@ -920,6 +1033,9 @@ $("#tzCodeBtn").onclick = () => copyText(TZ_CODE);
 /* ================= INIT ================= */
 applyTheme();
 renderHome();
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
 document.addEventListener("visibilitychange", () => {
   if(document.hidden){ synth.cancel(); session.token++; wakeOff();
     if($("#session").style.display === "block"){
