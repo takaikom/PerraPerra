@@ -1,4 +1,4 @@
-const CACHE = "perapera-v2.0";
+const CACHE = "perapera-v3.0";
 const ASSETS = [
   "./",
   "./index.html",
